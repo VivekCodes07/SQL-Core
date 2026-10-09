@@ -4,37 +4,37 @@
 
 I already know that SQL is used to work with relational databases. But before I start writing queries, I need to understand how information is actually organized inside a database.
 
-Imagine I am building a school management system. The school needs to maintain information about students, courses, and which students are enrolled in which courses.
+Imagine I am building a school management system. The school needs to store information about students, courses, and enrollments.
 
-Where should I store all this information? Should everything go into one large table? How do I distinguish one student from another? And how will I organize the information so that I can retrieve it later?
+Where should all this information go? Should I put everything into one large list? How would I distinguish one student from another? And how would I know which course a student has enrolled in?
 
 To answer these questions, I first need to understand **databases, tables, rows, and columns**.
 
-In this lesson, I will create a database, design a table, insert some sample records, and inspect what I have created.
+In this lesson, I will create a small database, design a table, insert some sample records, and inspect what I have created.
 
-I don't want to memorize SQL commands blindly. I want to understand what each command does and why I need it.
+My goal is not to memorize SQL commands. I want to understand what each command does and why I need it.
 
 ## What Am I Going to Learn?
 
 * How a MySQL server, database, and table relate to one another.
-* What tables, rows, columns, and cells represent.
+* What tables, rows, and columns represent.
 * The difference between a table's structure and its data.
-* Why columns need data types.
+* How columns use data types.
 * How to create and select a database.
 * How to create a table using `CREATE TABLE`.
 * How to insert records using `INSERT INTO`.
-* How to inspect a table's structure and contents.
-* Why rerunning a SQL file can cause errors or duplicate records.
+* How to inspect a table's structure and stored records.
+* Why running the same SQL file multiple times can cause problems.
 
 ---
 
 ## 01. First, Understand the Hierarchy
 
-Before writing SQL, I need to understand where everything lives.
+Before writing SQL, I need to understand where my information will live.
 
-MySQL manages databases, and each database can contain multiple tables. Each table organizes a particular kind of information.
+MySQL organizes information using a hierarchy. A MySQL server manages databases, and each database can contain multiple tables.
 
-For my school management system, the hierarchy could look like this:
+For my school management example, the structure might look like this:
 
 ```text
 MySQL Server
@@ -42,66 +42,61 @@ MySQL Server
 └── school_management (Database)
     │
     ├── students (Table)
-    │   └── Information about students
+    │   └── Student information
     │
     ├── courses (Table)
-    │   └── Information about courses
+    │   └── Course information
     │
     └── enrollments (Table)
         └── Which students take which courses
 ```
 
-Each level has a different purpose:
+Each level has a different purpose.
 
 * **MySQL Server:** Runs and manages the database system.
 * **Database:** Organizes related database objects.
 * **Table:** Organizes a particular kind of information.
 * **Column:** Defines an attribute of that information.
-* **Row:** Represents one record in the table.
-* **Cell:** Holds one value at the intersection of a row and a column.
+* **Row:** Stores one record.
 
-For now, I will focus on one table. Once I understand its structure, working with multiple related tables will become easier.
+For example, `students` stores student information, while `courses` stores course information.
+
+I do not need to create all three tables immediately. I will start with one table and understand its structure first.
 
 ## 02. What Exactly Is a Database?
 
 A database is an organized collection of information that I can store, retrieve, and manage.
 
-Imagine maintaining the details of hundreds of students in a plain text file. Finding a particular student, updating information, and keeping records consistent would become difficult as the amount of data increased.
+Imagine maintaining the details of hundreds of students in a plain text file. Finding a particular student, updating their information, and keeping everything consistent would become difficult as the amount of data increased.
 
 A database gives me a structured way to manage that information.
 
 However, a database is not the same thing as a table.
 
-I can think of the database as a container that organizes related tables.
+Think of the database as a container for related information. Inside it, I can create separate tables for students, courses, teachers, and enrollments.
 
-For example:
-
-* `students` stores student information.
-* `courses` stores course information.
-* `enrollments` stores information about students taking courses.
-
-Keeping these tables separate helps me organize different kinds of information without unnecessarily mixing everything together.
+For this lesson, I will use a database named `school_management`.
 
 ## 03. Creating My Database
 
-To create a database in MySQL, I use `CREATE DATABASE`.
+To create a database in MySQL, I use the `CREATE DATABASE` statement.
 
 ```sql
 CREATE DATABASE IF NOT EXISTS school_management;
 ```
 
-Let me understand the command:
+Let me understand each part:
 
 * `CREATE DATABASE` tells MySQL to create a database.
-* `IF NOT EXISTS` prevents an error if a database with that name already exists.
-* `school_management` is the database name.
+* `IF NOT EXISTS` prevents an error from attempting to create a database with a name that already exists.
+* `school_management` is the name of my database.
 * `;` marks the end of the SQL statement.
 
 Why use `IF NOT EXISTS`?
 
 Because I might execute this command more than once while practising. If the database already exists, MySQL will leave it in place instead of trying to create another database with the same name.
 
-One important detail: this statement does not clear or reset an existing database. It simply avoids creating it again.
+An important detail: this statement does not clear, reset, or recreate an existing database. It simply avoids creating it again.
 
 ## 04. Selecting My Database
 
@@ -134,105 +129,58 @@ This tells me that `school_management` is my current database.
 
 Why does this matter?
 
-Because when I create a table, I need to make sure I am working in the intended database. Otherwise, I might receive an error or create a table in a different database than I expected.
+Because when I create a table, I need to make sure I am working in the intended database. Otherwise, I might receive an error or create the table in a different database than I expected.
 
----
+## 05. Before Creating a Table, Think About the Information
 
-## 05. What Is a Table?
+Now I want to store information about students.
 
-A table organizes information into rows and columns.
+Before writing SQL, I should decide what information I actually need.
 
-Suppose I want to maintain student records. I could design a table with four columns:
+For this first table, I will store:
 
-* `id`
-* `name`
-* `age`
-* `email`
+* A student ID.
+* The student's name.
+* The student's age.
+* The student's email address.
 
-Conceptually, the table looks like this:
-
-```text
-                  students
-┌──────────┬──────────┬──────────┬──────────┐
-│    id    │   name   │   age    │   email  │
-├──────────┼──────────┼──────────┼──────────┤
-│          │          │          │          │
-│          │          │          │          │
-└──────────┴──────────┴──────────┴──────────┘
-```
-
-At this stage, I am only planning the structure. The table does not contain any student records yet.
-
-A table is not simply a visual grid. In MySQL, its definition specifies the columns, their data types, and any constraints that have been configured.
-
-## 06. Understanding Rows, Columns, and Cells
-
-This is the foundation I want to get right before moving forward.
-
-Consider a table containing a few student records:
+Conceptually, I am designing this structure:
 
 ```text
-+----+--------------+-----+---------------------------+
-| id | name         | age | email                     |
-+----+--------------+-----+---------------------------+
-|  1 | John Cena    |  21 | john.cena@example.com     |
-|  2 | Roman Reigns |  20 | roman.reigns@example.com  |
-|  3 | Cody Rhodes  |  22 | cody.rhodes@example.com   |
-+----+--------------+-----+---------------------------+
+students
+│
+├── id
+├── name
+├── age
+└── email
 ```
 
-The names are illustrative sample data. The ages and email addresses are fictional.
+Notice that I have not written any SQL yet. I am first deciding how the information should be organized.
 
-Let's understand the structure.
+This is an important habit: **understand the information before designing the table that stores it.**
 
-### A row represents one record
+Later, when I learn about relationships, I will see why student details and course details usually belong in separate tables.
 
-The first row represents one student record:
+## 06. What Is a Column?
 
-```text
-| 1 | John Cena | 21 | john.cena@example.com |
-```
+A column represents one attribute that I want to store for every record in a table.
 
-All the values in that row belong to the same record.
+In my `students` table:
 
-### A column represents one attribute
+* `id` identifies a student.
+* `name` stores the student's name.
+* `age` stores the student's age.
+* `email` stores the student's email address.
 
-The `name` column contains the names associated with the records.
+Each column has a name and a data type. It can also have constraints that control which values are allowed.
 
-The `age` column contains their ages.
+A column describes what kind of information belongs in that position. It does not represent an individual student.
 
-The `email` column contains their email addresses.
+## 07. Understanding Data Types
 
-Each column has a defined purpose.
+MySQL needs to know what kind of values a column is intended to store.
 
-### A cell contains one value
-
-The value `John Cena` is one cell in the table. It is located at the intersection of the first record's row and the `name` column.
-
-### Visualizing the difference
-
-```text
-                 COLUMNS
-          id      name       age
-           │        │         │
-        ┌──┼────────┼─────────┼───────┐
- ROW 1  │  1│ John Cena│  21   │  ...  │
-        ├──┼────────┼─────────┼───────┤
- ROW 2  │  2│ Roman Reigns│ 20│  ...  │
-        └──┴────────┴─────────┴───────┘
-                    ↑
-                  A cell
-```
-
-The drawing is conceptual rather than a literal MySQL output. The important idea is:
-
-* Rows go horizontally.
-* Columns go vertically.
-* Cells contain individual values.
-
-## 07. What Are Data Types?
-
-MySQL needs to know what kind of values a column is designed to store. This is why I specify a data type when defining a column.
+That is why I specify a data type when creating a column.
 
 | Data type       | What it stores                             | Example                 |
 | --------------- | ------------------------------------------ | ----------------------- |
@@ -242,36 +190,17 @@ MySQL needs to know what kind of values a column is designed to store. This is w
 | `DATE`          | A calendar date                            | `'2026-10-10'`          |
 | `DATETIME`      | A date and time                            | `'2026-10-10 14:30:00'` |
 
-I don't need to memorize every data type right now. I need to understand why different kinds of information use different types.
+I do not need to memorize every data type yet. I need to understand why different kinds of information use different types.
 
-For example:
+For example, a student's name is text, so `VARCHAR` makes sense. An age is a whole number, so `INT` is suitable for this exercise.
 
-* A student's name is text, so `VARCHAR` makes sense.
-* An age is a whole number, so `INT` is suitable for this exercise.
-* A fee amount might use `DECIMAL` because money needs appropriate decimal precision.
-
-Choosing a suitable data type helps MySQL interpret and validate the values stored in a column.
-
-### How a column definition comes together
-
-```text
-Column definition
-       │
-       ▼
-   name VARCHAR(100)
-   │    │       │
-   │    │       └── Maximum character length
-   │    └────────── Data type
-   └─────────────── Column name
-```
-
-This is the basic anatomy of a column definition. I will use this same pattern when creating tables.
-
----
+Choosing suitable data types helps MySQL interpret and validate the values stored in each column.
 
 ## 08. Creating My First Table
 
-Now that I understand the structure, I can create the `students` table.
+Now I know what information I want to store and which data types suit it.
+
+I can create the table:
 
 ```sql
 CREATE TABLE students (
@@ -295,37 +224,19 @@ Inside the parentheses, I define four columns:
 
 Commas separate the column definitions, and the semicolon ends the statement.
 
-At this point, the table's structure has been created, but no records have been inserted.
+At this point, MySQL has a definition for the table. I have not inserted any student records yet.
 
-Notice that I have not defined `id` as a primary key yet. I will learn about primary keys, uniqueness, and other constraints in a later lesson.
+Also, I have not defined `id` as a primary key. I will learn about primary keys and other constraints in a later lesson.
 
-## 09. Structure Versus Data
+## 09. Structure and Data Are Different Things
 
-This distinction is extremely important.
+This is one of the most important ideas in this lesson.
 
-**Structure** describes how the table is defined: its columns, data types, and constraints.
+A table has a **structure** and can contain **data**.
 
-**Data** is the actual information stored in its rows.
+The structure defines the columns and their data types. The data consists of the actual values stored in rows.
 
-The relationship looks like this:
-
-```mermaid
-flowchart TD
-    A["CREATE TABLE"] --> B["Table structure"]
-    B --> C["Columns and data types"]
-    D["INSERT INTO"] --> E["Stored records"]
-    E --> F["Rows containing values"]
-    B -. "Defines where data belongs" .-> E
-```
-
-The commands have different purposes:
-
-* `CREATE TABLE` defines the table.
-* `INSERT INTO` adds records to it.
-
-I can create a table with no records at all. The structure exists independently of whether any data has been inserted.
-
-I can inspect the table's structure with:
+I can inspect the table structure with:
 
 ```sql
 DESCRIBE students;
@@ -344,13 +255,20 @@ Example output:
 +-------+--------------+------+-----+---------+-------+
 ```
 
-This is illustrative MySQL output for the table definition above. Since I have not defined any constraints, the columns currently allow `NULL` values and `id` is not a key.
+This is illustrative MySQL output for the table definition above.
 
 The table exists, but it can still contain zero rows.
 
+```text
+Table structure: Created
+Records stored:  0
+```
+
+Creating a table does not automatically populate it with information. I need to insert records separately.
+
 ## 10. Inserting My First Row
 
-To add a record to the table, I use `INSERT INTO`.
+To add a record to a table, I use `INSERT INTO`.
 
 ```sql
 INSERT INTO students (id, name, age, email)
@@ -366,30 +284,19 @@ Here is what each part does:
 
 Text values are enclosed in single quotes, while integer values do not need quotes.
 
-The name is sample data, and the age and email are fictional practice values.
+The name is used as sample data; the age and email are fictional practice values.
 
-### How the values map to columns
+I have now added one row to the table.
 
-```text
-Columns specified                 Values supplied
-──────────────────                ───────────────
-id                                1
-name                              'John Cena'
-age                               21
-email                             'john.cena@example.com'
-        │                                │
-        └──────────────┬─────────────────┘
-                       ▼
-               One new table row
-```
+### Why specify the column names?
 
-The order matters. The first value goes into the first listed column, the second into the second column, and so on.
+Explicitly listing column names makes my query easier to understand and maintain. It also makes it clear which value belongs to which column.
 
-This is why specifying the column names makes the query easier to read and maintain.
+For this reason, I will generally include the column names when inserting records.
 
 ## 11. Adding More Rows
 
-I can insert multiple records using one statement.
+I can insert multiple records in one statement.
 
 ```sql
 INSERT INTO students (id, name, age, email)
@@ -399,28 +306,26 @@ VALUES
     (4, 'Seth Rollins', 21, 'seth.rollins@example.com');
 ```
 
-This statement inserts three additional records, assuming it succeeds.
+This statement inserts three additional records, assuming the statement succeeds.
 
-The names are illustrative sample values, and the ages and email addresses are fictional.
+The names are sample values, and the ages and email addresses are fictional.
 
 The table would now contain these records:
 
 ```text
-+----+--------------+-----+---------------------------+
-| id | name         | age | email                     |
-+----+--------------+-----+---------------------------+
-|  1 | John Cena    |  21 | john.cena@example.com     |
-|  2 | Roman Reigns |  20 | roman.reigns@example.com  |
-|  3 | Cody Rhodes  |  22 | cody.rhodes@example.com   |
-|  4 | Seth Rollins |  21 | seth.rollins@example.com  |
-+----+--------------+-----+---------------------------+
++----+--------------+-----+--------------------------+
+| id | name         | age | email                    |
++----+--------------+-----+--------------------------+
+|  1 | John Cena    |  21 | john.cena@example.com    |
+|  2 | Roman Reigns |  20 | roman.reigns@example.com |
+|  3 | Cody Rhodes  |  22 | cody.rhodes@example.com  |
+|  4 | Seth Rollins |  21 | seth.rollins@example.com |
++----+--------------+-----+--------------------------+
 ```
 
-This is an illustrative example of how MySQL might display the records.
+This is an example of how MySQL might display the stored records.
 
-Notice that each row contains four values, one for each column. The columns keep the information organized, while each row groups the values belonging to one record.
-
----
+Each horizontal record is a row, and each vertical field is a column.
 
 ## 12. How Do I Inspect What I Created?
 
@@ -440,15 +345,15 @@ This shows the database I am currently using.
 SHOW TABLES;
 ```
 
-This lists the tables in the selected database.
+This lists the tables in the selected database. The output depends on which tables already exist.
 
-### Inspect the table structure
+### Inspect a table's structure
 
 ```sql
 DESCRIBE students;
 ```
 
-This displays the columns, data types, and other structural details.
+This shows the columns, data types, and other structural details.
 
 ### See the complete table definition
 
@@ -456,7 +361,7 @@ This displays the columns, data types, and other structural details.
 SHOW CREATE TABLE students;
 ```
 
-This displays the SQL definition MySQL uses for the table, including its constraints and options.
+This shows the SQL definition MySQL uses for the table, including its constraints and options.
 
 ### Read the stored records
 
@@ -468,17 +373,17 @@ This retrieves every column from the table.
 
 I will learn `SELECT` in detail in the next lesson. For now, I am using it to verify the records I inserted.
 
-## 13. How Does the Whole Process Fit Together?
+## 13. How Do These Operations Fit Together?
 
-I want to understand the sequence instead of treating every SQL statement as an isolated command.
+I want to understand the overall process rather than treat each SQL command as an isolated instruction.
 
 ```mermaid
 flowchart TD
     A["Create database"] --> B["Select database"]
-    B --> C["Create table"]
+    B --> C["Define table structure"]
     C --> D["Insert records"]
-    D --> E["Inspect structure"]
-    E --> F["Read records"]
+    D --> E["Inspect table structure"]
+    E --> F["Read stored records"]
 ```
 
 Each step has a different purpose:
@@ -490,71 +395,29 @@ Each step has a different purpose:
 5. **Inspect the structure:** Lets me verify the table definition.
 6. **Read records:** Lets me check what has been stored.
 
-The table must exist before I can insert records into it.
+The sequence matters because the table must exist before I can insert records into it.
 
-## 14. A Preview of Multiple Tables
+## 14. What Happens If I Run My SQL File Again?
 
-A real school management system would need more than a `students` table.
+This matters because I am practising through the MySQL command line and can execute an entire SQL file using `SOURCE`.
 
-For example, the school might have these tables:
+Suppose I execute my `playground.sql` file and then execute it again.
 
-```text
-school_management
-│
-├── students
-│   ├── id
-│   └── name
-│
-├── courses
-│   ├── course_id
-│   └── course_name
-│
-└── enrollments
-    ├── student_id
-    └── course_id
-```
+What happens depends on the statements in the file:
 
-Why not store every student's course names directly in the `students` table?
+* `CREATE DATABASE IF NOT EXISTS school_management;` will not create the database again if it already exists.
+* `CREATE TABLE students (...)` will normally fail if the table already exists.
+* The `INSERT` statements can add duplicate records if they execute successfully and no constraint prevents them.
 
-Because one student may enroll in multiple courses, and each course may have multiple students. Separating the information helps organize these facts without repeatedly storing all the course details in each student record.
-
-The `enrollments` table can record which student takes which course.
-
-Conceptually, the relationships look like this:
-
-```mermaid
-flowchart LR
-    S["students"] --> E["enrollments"]
-    C["courses"] --> E
-```
-
-The diagram is a preview of how the tables could relate. The actual relationship rules will depend on the keys and constraints we define.
-
-I will learn how to design these relationships properly in a later lesson. For now, I only need to understand why a database can contain several tables with different purposes.
-
-## 15. What Happens If I Run My SQL File Again?
-
-Since I am practising through the MySQL command line, I can execute a SQL file using `SOURCE`.
-
-Suppose I run `playground.sql` and then run it again.
-
-What happens depends on the statements inside it:
-
-* `CREATE DATABASE IF NOT EXISTS school_management;` does not create the database again if it already exists.
-* `CREATE TABLE students (...)` normally fails if the table already exists.
-* The `INSERT` statements can insert duplicate records if they execute successfully and no constraint prevents them.
-
-My current table has no primary key or uniqueness constraint, so MySQL can accept repeated IDs.
-
-That is not a good design for a real school management system, but it demonstrates why constraints matter.
+My current table has no primary key or uniqueness constraint, so MySQL can accept repeated IDs. That is not a good design for a real student table, but it demonstrates why constraints matter.
 
 **I should never blindly rerun a SQL file without understanding what its statements will do.**
 
-Before executing it again, I should check whether the table already exists and whether I have already inserted the sample records.
+Before executing the file again, I should check whether the table exists and whether I have already inserted the sample records.
 
-I should also avoid dropping tables casually. `DROP TABLE` removes a table and its stored data, so I should only use it when I intentionally want to remove that table.
+I should also avoid dropping tables casually. `DROP TABLE` removes the table and its stored data, so I should only use it when I intentionally want to remove that table.
 
-## 16. My First Complete Experiment
+## 15. My First Complete Experiment
 
 I can put the commands from this lesson into my `playground.sql` file.
 
@@ -593,7 +456,7 @@ DESCRIBE students;
 SELECT * FROM students;
 ```
 
-The ages and email addresses are fictional practice data.
+The names are sample data, not an indication that this database is about wrestling. The age and email values are fictional.
 
 ### What should I observe?
 
@@ -604,9 +467,9 @@ The ages and email addresses are fictional practice data.
 5. `DESCRIBE` displays the table's structure.
 6. `SELECT *` displays the stored records.
 
-If MySQL reports that the table already exists, I should stop and inspect its current state rather than immediately deleting anything.
+If MySQL reports that the table already exists, I should stop and inspect its current state instead of immediately deleting anything.
 
-## 17. How Should I Think Before Creating a Table?
+## 16. How Should I Think Before Creating a Table?
 
 Before writing `CREATE TABLE`, I should ask myself:
 
@@ -618,17 +481,16 @@ Before writing `CREATE TABLE`, I should ask myself:
 
 For this example, one row represents one student record. The columns describe the information I want to store about that student.
 
-A real school management system will eventually need separate tables for courses and enrollments. I will build that understanding gradually as I learn more about relationships, keys, and joins.
+A real school management system would also need separate tables for courses and enrollments. Those tables would become especially useful when I start learning relationships and `JOIN` queries.
 
-For now, I want to become comfortable with the basic structure.
+For now, I want to understand the foundation before adding more complexity.
 
 ## What I Learned
 
 * [ ] A database organizes related database objects.
 * [ ] A table contains columns and rows.
-* [ ] A row represents one record.
-* [ ] A column defines an attribute.
-* [ ] A cell contains one value.
+* [ ] Columns define the attributes I want to store.
+* [ ] Rows contain individual records.
 * [ ] Data types describe the kinds of values a column can store.
 * [ ] `CREATE DATABASE` creates a database.
 * [ ] `USE` selects a database.
@@ -637,7 +499,7 @@ For now, I want to become comfortable with the basic structure.
 * [ ] `SHOW TABLES` lists tables in the selected database.
 * [ ] `DESCRIBE` shows a table's structure.
 * [ ] `SELECT *` retrieves all columns from a table.
-* [ ] Rerunning SQL scripts can cause errors or duplicate records.
+* [ ] Re-running SQL scripts can cause errors or insert duplicate records.
 
 ## What's Next?
 
