@@ -416,13 +416,13 @@ I don't need to memorize every definition word for word. I need to understand th
 ## What I Learned
 
 * [x] What a database is and why applications need one.
-* [ ] How MongoDB documents differ from relational tables.
-* [ ] What makes a database relational.
-* [ ] The difference between tables, rows, and columns.
-* [ ] Why applications separate customers, orders, and products.
-* [ ] How primary keys and foreign keys help connect records.
-* [ ] What SQL is and why it is declarative.
-* [ ] How SQL fits into a Node.js backend.
+* [x] How MongoDB documents differ from relational tables.
+* [x] What makes a database relational.
+* [x] The difference between tables, rows, and columns.
+* [x] Why applications separate customers, orders, and products.
+* [x] How primary keys and foreign keys help connect records.
+* [x] What SQL is and why it is declarative.
+* [x] How SQL fits into a Node.js backend.
 
 ## What's Next?
 
