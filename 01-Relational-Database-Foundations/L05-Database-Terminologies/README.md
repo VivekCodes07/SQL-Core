@@ -1,597 +1,601 @@
-# Lesson 05 — Database Terminologies
+# Lesson 05 — Database Terminologies: Understanding the Language of Databases
 
 ## Why Am I Learning This?
 
-I already understand what a relational database is, how tables store data, and how I can use SQL commands to interact with MySQL.
+Before working deeply with MySQL, I need to understand the basic building blocks of a relational database.
 
-But as I continue learning SQL, I will keep encountering terms such as:
+Think about a school. It has students, teachers, classrooms, subjects, and attendance records. All this information needs to be stored somewhere in an organised way.
 
-- Schema
+A database helps us do exactly that.
+
+While learning MySQL, I'll frequently encounter terms like Database, DBMS, RDBMS, Schema, Table, Row, Column, Primary Key, Foreign Key, and Relationships.
+
+Instead of memorising their definitions, I want to understand what each term actually represents, why it exists, and how everything connects.
+
+For this lesson, I'll use a School Management System as an example to build my understanding.
+
+## What Am I Going to Study?
+
+I'll build my understanding in the following progression:
+
+**1. Database Fundamentals**
+- Database
+- DBMS (Database Management System)
+- RDBMS (Relational Database Management System)
+- How MySQL fits into the picture
+
+**2. Database Structure**
+- Tables
+- Rows (Records / Tuples)
+- Columns (Fields / Attributes)
+- Schema and Instance
+
+**3. Keys in Relational Databases**
 - Primary Key
 - Foreign Key
-- Index
-- Constraint
-- Query
-- Relationship
-- Database Engine
+- Candidate Key
+- Alternate Key
+- Composite Key
 
-I might understand individual SQL commands, but if I don't understand these terms, it will become difficult to understand how a real database is designed.
+**4. Relationships Between Tables**
+- One-to-One (1:1)
+- One-to-Many (1:N)
+- Many-to-Many (M:N)
+- Junction Tables
 
-For example, when I hear that a table has a primary key, I should understand why that key exists and what problem it solves. When I hear that a column has an index, I should understand how it can help MySQL find data more efficiently.
+**5. Other Important Concepts**
+- NULL values
+- Data Integrity
+- Entity Integrity
+- Referential Integrity
+- Domain Integrity
 
-My goal is not to memorize definitions. I want to build a mental model of how relational databases are organized and how their different parts work together.
+**6. Putting Everything Together**
+- Understand how these concepts work together in a School Management System.
+- Build a mental model of how relational databases organise and connect information.
 
-## What Am I Going to Learn?
-
-By the end of this lesson, I want to understand:
-
-1. Database, schema, table, row and column.
-2. Records, fields and data types.
-3. Primary keys and foreign keys.
-4. Constraints and data integrity.
-5. Indexes and why they matter.
-6. Queries and database engines.
-7. Relationships between tables.
-8. How all these concepts fit together in a real application.
+By the end of this lesson, I should be able to look at a relational database and understand its structure, terminology, and how its tables are connected.
 
 ---
 
-## 1. The Structure of a Database
+## 1. Understanding the Big Picture
 
-Before learning the more technical terms, I want to understand how the basic pieces fit together.
+Let's start with a simple question:
 
-Imagine that I am building a school-management application.
+**Where does an application store its data?**
 
-The application needs to store students, teachers, courses and enrollments. These are different kinds of information, so I need a way to organize them.
+Imagine I'm building a School Management System. It needs to store:
 
-A relational database organizes this information using tables.
+- Student information
+- Teacher information
+- Subject details
+- Student attendance
+- Examination results
 
-### Understanding the hierarchy
+I cannot keep all this information inside my JavaScript code. I need a proper system to store, organise, retrieve, and manage it.
 
-```text
-MySQL Server
-│
-└── Database: school_management
-    │
-    ├── Table: students
-    │   ├── Columns: id, name, age
-    │   └── Rows: individual student records
-    │
-    ├── Table: courses
-    │   ├── Columns: id, course_name
-    │   └── Rows: individual course records
-    │
-    └── Table: enrollments
-        ├── Columns: student_id, course_id
-        └── Rows: student-course relationships
-```
+This is where databases come in.
 
-This diagram shows the general organization of the information.
+### Database
 
-The database groups related tables together. Each table represents a particular kind of information, and each row stores one record.
+A **Database** is an organised collection of data that can be stored, accessed, managed, and updated efficiently.
 
-Let's understand the terminology one concept at a time.
+For example, a school database might contain information about students, teachers, subjects, and attendance.
 
-## 2. Database
+Think of a database as a digital storage room where information is organised instead of being scattered everywhere.
 
-A **database** is an organized collection of data that I can store, manage and retrieve.
+### DBMS (Database Management System)
 
-For my school-management application, I might create a database named:
+Now, having a place to store data isn't enough. I also need a way to interact with that data.
 
-```sql
-CREATE DATABASE school_management;
-```
+That's where a **DBMS** comes in.
 
-The database can contain tables for students, teachers, courses, attendance and other information.
+A Database Management System is software that allows us to create databases and perform operations such as:
 
-I can think of the database as the overall container that organizes the data for a particular application.
+- Inserting data
+- Retrieving data
+- Updating data
+- Deleting data
+- Managing access to data
 
-However, the database itself is not the same thing as a table. The database contains the tables.
+Think of it this way:
 
-## 3. Schema
+- Database = The place where data is organised and stored.
+- DBMS = The software that manages that data.
 
-The word *schema* is used in different ways depending on the database system.
+Examples of DBMS:
 
-In the context of relational databases, a schema generally describes the structure or organization of database objects, such as tables, columns, data types, constraints and relationships.
+- MySQL
+- PostgreSQL
+- Oracle Database
+- Microsoft SQL Server
 
-For example, imagine the following table definition:
+### RDBMS (Relational Database Management System)
 
-```sql
-CREATE TABLE students (
-    id INT,
-    name VARCHAR(100),
-    age INT
-);
-```
+Not every database organises information in the same way.
 
-This definition describes the structure of the `students` table.
+An **RDBMS** is a type of DBMS that organises data into tables and establishes relationships between those tables.
 
-It tells MySQL that the table has three columns and specifies the data type of each column.
+For example, instead of storing everything in one huge table, a school database can have separate tables:
 
-The table's structure is part of its schema.
+- students
+- teachers
+- subjects
+- attendance
 
-### Database vs schema in MySQL
+These tables can be connected using keys.
 
-This is an important detail: in MySQL, `CREATE SCHEMA` is a synonym for `CREATE DATABASE`.
+This is why it is called a relational database.
 
-So, in MySQL, I can use:
+**Where does MySQL fit?**
 
-```sql
-CREATE DATABASE school_management;
-```
+MySQL is an RDBMS. It stores data in tables and allows us to establish relationships between them.
 
-or:
+## 2. Understanding the Structure of a Database
 
-```sql
-CREATE SCHEMA school_management;
-```
+Now that I understand what a database and RDBMS are, let's look inside a relational database.
 
-Both create a database.
+Imagine I've created a database named `school_db`.
 
-In some other database systems, such as PostgreSQL, a database and a schema are distinct levels of organization.
+Inside it, I want to store information about students.
 
-**What I should remember:** the word *schema* can refer to a table's structure or to a named collection of database objects, depending on the context and database system.
+### Database
 
-## 4. Table
+A database acts as a container for related information.
 
-A **table** stores a particular category of information in a relational database.
+Example:
 
-For example, a `students` table stores student information, while a `courses` table stores course information.
+`school_db`
 
-Here is an example of a `students` table:
+It can contain multiple tables, each responsible for storing a particular category of information.
 
-```text
-+----+--------------+-----+
-| id | name         | age |
-+----+--------------+-----+
-|  1 | John Cena    |  21 |
-|  2 | Roman Reigns |  20 |
-|  3 | Cody Rhodes  |  22 |
-+----+--------------+-----+
-```
+### Table
 
-The names are sample data; the ages are fictional.
+A table is where related data is organised into rows and columns.
 
-This table has three columns and three records.
+For example, I can create a table named `students`.
 
-The table defines how a particular category of data is organized. It does not mean that every table in the database must have the same columns.
-
-For example, a `courses` table could have columns such as `id`, `course_name` and `credits`.
-
-## 5. Row, Record and Tuple
-
-A **row** represents one entry in a table.
-
-In database discussions, the words *row* and *record* are commonly used interchangeably. In relational theory, a row is also called a *tuple*.
-
-Look at this example:
-
-```text
-+----+--------------+-----+
-| id | name         | age |
-+----+--------------+-----+
-|  1 | John Cena    |  21 |
-+----+--------------+-----+
-```
-
-The row represents one student's information.
-
-The entire row contains the values `1`, `John Cena` and `21`.
-
-A table can contain thousands or millions of rows. Each row represents one record in that table.
-
-## 6. Column, Field and Attribute
-
-A **column** defines a particular piece of information that each row can store.
-
-In the `students` table, the columns are:
-
-- `id`
-- `name`
-- `age`
-
-Each column has a name and a data type.
-
-For example:
-
-```text
-students
-│
-├── id    → INT
-├── name  → VARCHAR(100)
-└── age   → INT
-```
-
-A column describes the kind of information stored in that position.
-
-The terms *attribute* and *field* are also used in database discussions, but their exact meanings depend on context. In relational theory, an attribute corresponds to a column. In everyday SQL usage, it is clearest to call the table's vertical structure a **column**.
-
-## 7. Data Type
-
-A **data type** determines what kind of value a column can store and how MySQL handles that value.
-
-For example:
-
-```sql
-CREATE TABLE courses (
-    id INT,
-    course_name VARCHAR(100),
-    fee DECIMAL(10, 2),
-    start_date DATE
-);
-```
+| student_id | name | age | course |
+|---|---|---|---|
+| 101 | John | 20 | CSE |
+| 102 | Roman | 21 | ECE |
+| 103 | Seth | 19 | CSE |
 
 Here:
 
-| Column | Data type | Purpose |
-|---|---|---|
-| `id` | `INT` | Stores integer values |
-| `course_name` | `VARCHAR(100)` | Stores variable-length text |
-| `fee` | `DECIMAL(10, 2)` | Stores decimal numbers with two fractional digits |
-| `start_date` | `DATE` | Stores calendar dates |
+- `students` is the table name.
+- Each row represents one student.
+- Each column represents a particular attribute of a student.
 
-Choosing an appropriate data type helps me define what information belongs in each column.
+Think of a table like an Excel sheet, where information is organised into rows and columns.
 
-For example, a course fee should generally use an appropriate numeric type rather than a text type, especially when I need to perform calculations.
+### Row (Record / Tuple)
 
-I will study MySQL data types in detail in Lesson 06.
-
-## 8. Primary Key
-
-A **primary key** uniquely identifies each row in a table.
-
-Imagine that two students have the same name. If I try to identify a student using only their name, I might not know which record I mean.
-
-That is why I need a unique identifier.
+A row represents one complete record in a table.
 
 For example:
 
+`101 | John | 20 | CSE`
+
+This entire row represents one student.
+
+Other names for a row include:
+
+- Record
+- Tuple
+
+Whenever I insert a new student into the table, a new row is created.
+
+### Column (Field / Attribute)
+
+A column represents a particular property or characteristic of the data stored in a table.
+
+For example:
+
+- `student_id`
+- `name`
+- `age`
+- `course`
+
+Each column describes what kind of information should be stored for every student.
+
+Other common terms:
+
+- Field
+- Attribute
+
+**Remember the difference:**
+
+- Row = One complete record.
+- Column = One property of that record.
+
+## 3. Understanding Schema and Instance
+
+These two terms are important because they describe two different aspects of a database.
+
+### Schema
+
+A schema describes the structure or design of a database.
+
+It defines things such as:
+
+- Table names
+- Column names
+- Data types
+- Relationships
+- Constraints
+
+For example, my `students` table might have this structure:
+
 ```sql
 CREATE TABLE students (
-    id INT PRIMARY KEY,
+    student_id INT,
     name VARCHAR(100),
-    age INT
+    age INT,
+    course VARCHAR(50)
 );
 ```
 
-Now `id` is the primary key.
+This definition describes the structure of the table.
 
-The primary key must contain unique, non-`NULL` values. A table has only one primary key constraint, although that key can consist of multiple columns.
+It tells MySQL what columns exist and what kind of data they are intended to store.
 
-### Why is a primary key useful?
+Think of a schema as the blueprint of a house. It describes how the house is designed, not the people currently living inside it.
 
-Suppose the table contains:
+### Instance
 
-```text
-+----+--------------+-----+
-| id | name         | age |
-+----+--------------+-----+
-|  1 | John Cena    |  21 |
-|  2 | Roman Reigns |  20 |
-|  3 | Cody Rhodes  |  22 |
-+----+--------------+-----+
-```
+An instance refers to the actual data stored in the database at a particular moment.
 
-If I want to identify the student whose ID is `2`, I can write:
+For example:
 
-```sql
-SELECT *
-FROM students
-WHERE id = 2;
-```
+| student_id | name | age | course |
+|---|---|---|---|
+| 101 | John | 20 | CSE |
+| 102 | Roman | 21 | ECE |
 
-The primary key gives each row a reliable identity.
+These are actual records stored inside the table.
 
-Without a suitable key, identifying, updating and relating records can become much harder.
+If I insert another student, the instance changes, but the schema can remain exactly the same.
 
-## 9. Foreign Key
+**The difference:**
 
-A **foreign key** connects records in one table to records in another table by referencing a key in the referenced table.
+- Schema = How the database is structured.
+- Instance = What data is currently stored in it.
 
-Suppose my application stores students and courses separately.
+## 4. Understanding Keys
 
-A student can enrol in a course, and a course can have many students. I need a way to record which student is enrolled in which course.
+Now imagine that our school has thousands of students.
 
-I can create an `enrollments` table.
+What happens if two students have the same name?
+
+For example:
+
+| name | age | course |
+|---|---|---|
+| John | 20 | CSE |
+| John | 21 | ECE |
+
+If I want to find a particular John, searching only by name can create confusion.
+
+I need something that uniquely identifies each student.
+
+This is where keys become important.
+
+### Primary Key
+
+A Primary Key is a column, or a combination of columns, that uniquely identifies every row in a table.
+
+Example:
+
+| student_id (PK) | name | age |
+|---|---|---|
+| 101 | John | 20 |
+| 102 | John | 21 |
+| 103 | Roman | 19 |
+
+Here, `student_id` is the Primary Key.
+
+Why?
+
+- Every student has a unique ID.
+- Two students cannot have the same Primary Key value.
+- A Primary Key cannot contain NULL.
+- A table can have only one Primary Key constraint, although it can contain multiple columns (composite primary key).
+
+Think of it like a university roll number. Even if two students have the same name, their roll numbers distinguish them.
+
+### Foreign Key
+
+Now let's say I have another table called `attendance`.
+
+| attendance_id | student_id | status |
+|---|---|---|
+| 1 | 101 | Present |
+| 2 | 102 | Absent |
+| 3 | 101 | Present |
+
+Notice something?
+
+The `student_id` column appears in both tables.
+
+In the `students` table, `student_id` uniquely identifies a student.
+
+In the `attendance` table, `student_id` refers to the student whose attendance is being recorded.
+
+This is where a **Foreign Key** comes in.
+
+A Foreign Key is a column (or group of columns) that references a key in another table, usually its Primary Key.
+
+It helps establish relationships between tables and maintain referential integrity.
+
+In our example:
+
+- `students.student_id` = Primary Key.
+- `attendance.student_id` = Foreign Key.
+
+Think of a Foreign Key as a reference that connects one table to another.
+
+### Candidate Key
+
+A Candidate Key is a minimal column or combination of columns that can uniquely identify a record.
+
+Imagine a student table containing:
+
+- student_id
+- university_email
+- name
+- age
+
+Suppose both `student_id` and `university_email` are unique and neither needs another column to identify a student.
+
+Both can be Candidate Keys.
+
+We select one of them as the Primary Key. The remaining candidate keys are called Alternate Keys.
+
+### Alternate Key
+
+An Alternate Key is a Candidate Key that was not selected as the Primary Key.
+
+For example:
+
+- `student_id` = Primary Key.
+- `university_email` = Alternate Key.
+
+Both uniquely identify a student, but only one is chosen as the Primary Key.
+
+### Composite Key
+
+Sometimes, one column alone cannot uniquely identify a record.
+
+For example, consider an `enrollments` table:
+
+| student_id | subject_id | semester |
+|---|---|---|
+| 101 | 501 | 3 |
+| 101 | 502 | 3 |
+| 102 | 501 | 3 |
+
+A student can enrol in multiple subjects, so `student_id` alone is not unique.
+
+Similarly, many students can enrol in the same subject, so `subject_id` alone is not unique.
+
+But the combination of `student_id` and `subject_id` can uniquely identify an enrollment in this example.
+
+This combination is called a **Composite Key**.
+
+## 5. Understanding Relationships
+
+Now that I understand Primary Keys and Foreign Keys, I can understand how tables are connected.
+
+In relational databases, tables are connected through relationships.
+
+Let's understand the three common types.
+
+### One-to-One (1:1)
+
+One record in Table A is associated with one record in Table B, and vice versa.
+
+Example:
+
+- One student has one university ID card.
+- One university ID card belongs to one student.
+
+### One-to-Many (1:N)
+
+One record in Table A can be associated with multiple records in Table B.
+
+Example:
+
+- One student can have multiple attendance records.
+- Each attendance record belongs to one student.
+
+This is a very common relationship in real-world applications.
+
+### Many-to-Many (M:N)
+
+Multiple records in Table A can be associated with multiple records in Table B.
+
+Example:
+
+- One student can enrol in multiple subjects.
+- One subject can have multiple students.
+
+To implement this relationship in a relational database, we generally introduce a junction table.
+
+For example:
 
 ```text
 students
-+----+--------------+
-| id | name         |
-+----+--------------+
-|  1 | John Cena    |
-|  2 | Roman Reigns |
-+----+--------------+
-
-courses
-+----+----------------+
-| id | course_name    |
-+----+----------------+
-| 10 | Java           |
-| 20 | Database Design|
-+----+----------------+
-
+   |
+   | 1
+   |
+   | N
 enrollments
-+------------+-----------+
-| student_id | course_id |
-+------------+-----------+
-| 1          | 10        |
-| 1          | 20        |
-| 2          | 10        |
-+------------+-----------+
+   |
+   | N
+   |
+   | 1
+subjects
 ```
 
-The `student_id` column refers to `students.id`, and `course_id` refers to `courses.id`.
+The `enrollments` table connects students and subjects using Foreign Keys.
 
-I can define these relationships using foreign keys:
+## 6. Understanding NULL
+
+One more important concept: NULL.
+
+NULL represents a missing, unknown, or unavailable value.
+
+Imagine this student record:
+
+| student_id | name | phone |
+|---|---|---|
+| 101 | John | NULL |
+
+Here, John's phone number is not available.
+
+NULL does not mean:
+
+- Zero
+- An empty string
+- A blank space
+
+It means the value is missing or unknown.
+
+For example, in SQL:
 
 ```sql
-CREATE TABLE enrollments (
-    student_id INT,
-    course_id INT,
-
-    FOREIGN KEY (student_id) REFERENCES students(id),
-    FOREIGN KEY (course_id) REFERENCES courses(id)
-);
+SELECT * FROM students
+WHERE phone IS NULL;
 ```
 
-This example assumes the referenced tables already exist and their referenced columns are valid keys.
+Notice that we use `IS NULL`, not `= NULL`.
 
-### What problem does a foreign key solve?
+This is because NULL represents an unknown value, not an ordinary value that can be compared using equality.
 
-A foreign key helps enforce referential integrity.
+## 7. Understanding Data Integrity
 
-For example, MySQL can prevent an enrollment from referencing a student ID that does not exist in the referenced table, subject to the constraint and its configuration.
+Imagine a school database where:
 
-**What I should remember:**
+- Two students accidentally receive the same student ID.
+- An attendance record refers to a student who doesn't exist.
+- Someone enters a negative age.
+- A required student name is left empty.
 
-- A primary key identifies a row in its own table.
-- A foreign key establishes a reference to a key in another table or, where appropriate, the same table.
+These problems make the database unreliable.
 
-I will study primary keys and foreign keys in detail in Lessons 19 and 20.
+A database should maintain accurate, valid, and consistent data.
 
-## 10. Relationship
+This is called **Data Integrity**.
 
-A **relationship** describes how records in different tables are associated with one another.
+Some important types are:
 
-For example, in my school-management database:
+### Entity Integrity
 
-- A student can enrol in multiple courses.
-- A course can have multiple students.
-- A teacher can teach multiple courses.
+Every row should be uniquely identifiable.
 
-Common relationship patterns include:
+Primary Keys help maintain entity integrity because they must be unique and cannot contain NULL.
 
-### One-to-one
+### Referential Integrity
 
-One record is associated with at most one record in another table, and vice versa.
+References between related tables should remain valid.
 
-Example: a person and a separate record containing that person's unique profile details.
+For example, an attendance record should not refer to a student who doesn't exist.
 
-### One-to-many
+Foreign Keys help maintain referential integrity.
 
-One record can be associated with many records in another table.
+### Domain Integrity
 
-Example: one teacher can be associated with several courses.
+Values should follow the rules defined for a column.
 
-### Many-to-many
+For example:
 
-Many records in one table can be associated with many records in another table.
+- Age should be stored using an appropriate numeric data type.
+- Student names should contain text.
+- A required field should not accept NULL.
 
-Example: many students can enrol in many courses.
+Data types and constraints help maintain domain integrity.
 
-A many-to-many relationship is commonly represented using a junction table such as `enrollments`.
+We'll study constraints and how MySQL enforces these rules in greater detail in upcoming lessons.
+
+## 8. Connecting Everything Together
+
+Let's bring everything we've learned into one picture.
+
+Imagine I'm building a School Management System.
 
 ```text
-students ─────< enrollments >───── courses
-                  │
-                  ├── student_id
-                  └── course_id
+                    SCHOOL DATABASE
+                           |
+                        school_db
+                           |
+              +------------+------------+
+              |            |            |
+           students     subjects     teachers
+              |
+              | student_id (PK)
+              |
+              v
+          attendance
+              |
+              | student_id (FK)
+              |
+              v
+           students
 ```
 
-The foreign keys connect the enrollment records to their respective students and courses.
+Each table stores a particular type of information.
 
-Understanding relationships is essential because real applications rarely store all their information in one giant table.
+Rows represent individual records, columns represent attributes, Primary Keys identify records, and Foreign Keys connect related tables.
 
-## 11. Constraint
+This is the basic foundation of a relational database.
 
-A **constraint** is a rule that the database enforces on stored data.
+## 9. Quick Revision
 
-Constraints help prevent invalid or inconsistent information from being stored.
-
-For example, a student should not have the same primary key as another student. An enrollment should not reference a nonexistent student when a suitable foreign key is enforced.
-
-Common MySQL constraints include:
-
-| Constraint | Purpose |
+| Terminology | What it means |
 |---|---|
-| `PRIMARY KEY` | Uniquely identifies each row and disallows `NULL` key values |
-| `FOREIGN KEY` | Enforces a valid reference to a key in another table or the same table |
-| `UNIQUE` | Prevents duplicate values for the constrained column or column combination |
-| `NOT NULL` | Prevents a column from storing `NULL` |
-| `CHECK` | Enforces a specified condition on values |
+| Database | Organised collection of data |
+| DBMS | Software used to manage databases |
+| RDBMS | DBMS that organises data using related tables |
+| Schema | Structure or blueprint of a database |
+| Instance | Actual data at a particular moment |
+| Table | Data organised into rows and columns |
+| Row | One complete record |
+| Column | One attribute of a record |
+| Primary Key | Uniquely identifies a record |
+| Foreign Key | References a key in another table |
+| Candidate Key | Minimal set of attributes that uniquely identifies a record |
+| Alternate Key | Candidate Key not selected as the Primary Key |
+| Composite Key | Key consisting of multiple columns |
+| NULL | Missing or unknown value |
+| Relationship | Connection between tables |
+| Data Integrity | Accuracy and consistency of stored data |
 
-For example:
+## 10. What Should I Be Able to Explain After This Lesson?
 
-```sql
-CREATE TABLE courses (
-    id INT PRIMARY KEY,
-    course_name VARCHAR(100) NOT NULL,
-    fee DECIMAL(10, 2) CHECK (fee >= 0)
-);
-```
+Before moving forward, I should be able to explain these concepts in my own words:
 
-This definition requires each course to have a unique ID, requires a course name, and declares a condition that the fee must be nonnegative.
+1. What is the difference between a Database, DBMS, and RDBMS?
+2. What is the difference between a table, row, and column?
+3. What is the difference between Schema and Instance?
+4. Why do we need Primary Keys?
+5. How does a Foreign Key connect two tables?
+6. What is the difference between Candidate Key and Primary Key?
+7. What is a Composite Key, and when do we need one?
+8. What are One-to-One, One-to-Many, and Many-to-Many relationships?
+9. Why is NULL different from zero and an empty string?
+10. What is Data Integrity, and why does it matter?
 
-The exact enforcement behavior of some constraints depends on the MySQL version and configuration. In modern MySQL versions, `CHECK` constraints are enforced.
-
-Constraints are important because I should not have to rely entirely on my application code to prevent invalid data.
-
-## 12. Index
-
-An **index** is a database structure that can help MySQL find rows more efficiently.
-
-Imagine that a table contains one million student records.
-
-If I frequently search for a student using a particular column, MySQL may need to examine many rows when no suitable index exists.
-
-An index can provide a more efficient way to locate matching records.
-
-For example:
-
-```sql
-CREATE INDEX idx_students_name
-ON students(name);
-```
-
-This creates an index on the `name` column.
-
-A query such as:
-
-```sql
-SELECT *
-FROM students
-WHERE name = 'John Cena';
-```
-
-may benefit from this index.
-
-However, an index does not guarantee that every query will become faster. MySQL's optimizer chooses an execution plan based on the query, available indexes, statistics and other factors.
-
-### Why not index every column?
-
-Indexes also have costs.
-
-- They consume storage.
-- Inserts, updates and deletes may require index maintenance.
-- Too many indexes can increase the cost of modifying data.
-
-So, an index is a tool for improving performance when it suits the queries I actually run.
-
-### Primary key and index
-
-In MySQL's InnoDB storage engine, a primary key is implemented as the clustered index. Secondary indexes also have their own structures.
-
-For now, I should remember that a primary key defines a uniqueness rule and identifies records, while an index is a structure used to support efficient data access. These concepts are related, but they are not interchangeable.
-
-I will explore indexes and query performance in Lesson 28.
-
-## 13. Query
-
-A **query** is a request I make to a database.
-
-For example:
-
-```sql
-SELECT name
-FROM students
-WHERE age >= 21;
-```
-
-This query asks MySQL to retrieve the names of students whose age is at least 21.
-
-Queries can retrieve data, and SQL statements can also request changes to database structures or stored records.
-
-In everyday conversation, people often use *query* broadly to refer to an SQL statement, although the terms are not always used identically in every technical context.
-
-For now, I should understand a query as an instruction or request that I send to the database.
-
-## 14. Database Engine
-
-A **database engine** is the component responsible for implementing core database operations, including how data is stored, retrieved and managed.
-
-In MySQL, storage engines determine important details about how tables store and access data.
-
-Two names I will encounter are:
-
-- **InnoDB:** MySQL's default storage engine in modern versions. It supports transactions, foreign keys and crash recovery.
-- **MyISAM:** Another MySQL storage engine, historically used for certain workloads, but without InnoDB-style transaction support.
-
-For my learning and most backend projects, I will primarily work with InnoDB.
-
-I can explicitly select it when creating a table:
-
-```sql
-CREATE TABLE example (
-    id INT PRIMARY KEY
-) ENGINE = InnoDB;
-```
-
-The engine matters because features such as transactions and foreign-key enforcement depend on the storage engine and database configuration.
-
-## 15. Putting the Concepts Together
-
-Now I want to see how the terminology connects in a single example.
-
-Imagine I am designing the data model for my school-management application.
-
-```sql
-CREATE DATABASE school_management;
-
-USE school_management;
-
-CREATE TABLE students (
-    id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    age INT
-) ENGINE = InnoDB;
-
-CREATE TABLE courses (
-    id INT PRIMARY KEY,
-    course_name VARCHAR(100) NOT NULL
-) ENGINE = InnoDB;
-
-CREATE TABLE enrollments (
-    student_id INT,
-    course_id INT,
-
-    PRIMARY KEY (student_id, course_id),
-
-    FOREIGN KEY (student_id) REFERENCES students(id),
-    FOREIGN KEY (course_id) REFERENCES courses(id)
-) ENGINE = InnoDB;
-```
-
-I have used several concepts in this design:
-
-- `school_management` is the database.
-- `students`, `courses` and `enrollments` are tables.
-- `id`, `name`, `age`, `student_id` and `course_id` are columns.
-- `INT` and `VARCHAR(100)` are data types.
-- The primary keys identify records.
-- The foreign keys connect enrollments to students and courses.
-- `NOT NULL` is a constraint.
-- `InnoDB` is the storage engine.
-- The tables collectively represent part of the database's structure.
-
-The composite primary key on `enrollments` also prevents the same student-course pair from appearing more than once.
-
-This is how the terminology stops being a collection of definitions and starts becoming a useful way to reason about database design.
+If I can explain these without simply memorising definitions, I've understood the foundation of relational databases.
 
 ---
 
-## 16. What I Have Learned
+## What's Next?
 
-I should now be able to explain these concepts in my own words:
+Now that I understand the language and structure of relational databases, I can move towards understanding how actual data is represented and stored.
 
-- **Database:** An organized collection of data.
-- **Schema:** A description or organization of database structures, with exact usage depending on the database system.
-- **Table:** A structure that organizes data into rows and columns.
-- **Row / record:** One entry in a table.
-- **Column / attribute:** A defined piece of information in a table.
-- **Data type:** Defines the kind of value a column can store.
-- **Primary key:** Uniquely identifies each row.
-- **Foreign key:** References a key to establish and enforce a relationship.
-- **Relationship:** Describes how records in tables are associated.
-- **Constraint:** A rule enforced on data.
-- **Index:** A structure that can improve data access efficiency.
-- **Query:** A request or instruction sent to the database.
-- **Database engine:** Implements how data is stored, retrieved and managed.
+**Lesson 06 — MySQL Data Types**
 
-## What Comes Next?
+I'll learn how MySQL decides what kind of information each column can store, why choosing the correct data type matters, and how different data types affect storage and operations.
 
-In Lesson 06, I will study MySQL data types in more detail.
-
-I will learn how to choose appropriate types for integers, text, decimal values, dates and other kinds of information.
-
-The goal is to stop choosing data types randomly and start understanding why a particular type makes sense for a particular column.
+The goal is to understand not just which data types exist, but also when and why I should use them.
