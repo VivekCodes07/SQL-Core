@@ -2,7 +2,7 @@
 
 ## Why Am I Learning This?
 
-In the previous lesson, I learned how to filter records using the `WHERE` clause.
+In the previous lessons, I learned how to retrieve specific records using the `WHERE` clause and filter them using different conditions.
 
 For example:
 
@@ -32,10 +32,11 @@ That's why I'm learning **Logical Operators**.
 2. AND Operator
 3. OR Operator
 4. NOT Operator
-5. Combining multiple conditions
-6. Understanding AND vs OR
-7. SQL Logical Operators vs MongoDB
-8. Real-world backend examples
+5. Combining Multiple Conditions
+6. Understanding Operator Precedence
+7. How Logical Operators Handle NULL
+8. SQL Logical Operators vs MongoDB
+9. Real-World Backend Examples
 
 ## 1. What Are Logical Operators?
 
@@ -54,7 +55,7 @@ Let's understand each one using our existing `students` table.
 Our sample records look like this:
 
 | student_id | name | age | course | city |
-|---|---|---|---|---|
+|---:|---|---:|---|---|
 | 1 | John | 20 | CSE | Delhi |
 | 2 | Roman | 21 | IT | Mumbai |
 | 3 | Seth | 19 | CSE | Chandigarh |
@@ -108,7 +109,7 @@ For every student, MySQL checks:
 **Expected Output:**
 
 | student_id | name | age | course | city |
-|---|---|---|---|---|
+|---:|---|---:|---|---|
 | 1 | John | 20 | CSE | Delhi |
 
 Only John satisfies both conditions.
@@ -126,15 +127,11 @@ AND course = 'CSE';
 
 **Expected Output:**
 
-No records.
-
-Why? John is 20 but enrolled in CSE, so he actually satisfies both conditions.
-
-Correction: John matches both conditions, so the result is:
-
 | student_id | name | age | course | city |
-|---|---|---|---|---|
+|---:|---|---:|---|---|
 | 1 | John | 20 | CSE | Delhi |
+
+John matches both conditions because he is 20 and enrolled in CSE.
 
 The important thing is that every condition connected by `AND` must be satisfied.
 
@@ -144,7 +141,7 @@ The important thing is that every condition connected by `AND` must be satisfied
 
 Now suppose I want to find students who are enrolled in either CSE or IT.
 
-I don't want both conditions to be true for the same student.
+I don't need both conditions to be true for the same student.
 
 I just need a student to belong to at least one of these courses.
 
@@ -183,7 +180,7 @@ For every student, MySQL checks:
 **Expected Output:**
 
 | student_id | name | age | course | city |
-|---|---|---|---|---|
+|---:|---|---:|---|---|
 | 1 | John | 20 | CSE | Delhi |
 | 2 | Roman | 21 | IT | Mumbai |
 | 3 | Seth | 19 | CSE | Chandigarh |
@@ -248,7 +245,7 @@ Therefore, students enrolled in courses other than CSE are returned.
 **Expected Output:**
 
 | student_id | name | age | course | city |
-|---|---|---|---|---|
+|---:|---|---:|---|---|
 | 2 | Roman | 21 | IT | Mumbai |
 | 4 | Randy | 22 | ECE | Pune |
 | 5 | Brock | 20 | Mechanical | Jaipur |
@@ -262,6 +259,16 @@ WHERE NOT (course = 'CSE');
 ```
 
 The parentheses make the condition being reversed easier to understand.
+
+I can also use the comparison operator `!=` or `<>` for this particular condition:
+
+```sql
+SELECT *
+FROM students
+WHERE course != 'CSE';
+```
+
+All three approaches give the same result for our current sample data.
 
 ## 5. Combining Multiple Logical Operators
 
@@ -292,9 +299,9 @@ The logic is:
 ```text
                  AND
                 /   \
-              OR   city = Delhi
+              OR    city = Delhi
              /  \
-     course = CSE  course = IT
+    course = CSE  course = IT
 ```
 
 First, MySQL checks whether the student belongs to CSE or IT.
@@ -306,7 +313,7 @@ Both parts must be satisfied.
 **Expected Output:**
 
 | student_id | name | age | course | city |
-|---|---|---|---|---|
+|---:|---|---:|---|---|
 | 1 | John | 20 | CSE | Delhi |
 
 ### Understanding Operator Precedence
@@ -323,18 +330,131 @@ AND city = 'Delhi';
 
 MySQL evaluates `AND` before `OR`.
 
-So this is interpreted as:
+So this query is interpreted as:
 
 ```sql
+SELECT *
+FROM students
 WHERE course = 'CSE'
 OR (course = 'IT' AND city = 'Delhi');
 ```
 
-This is different from the previous query!
+This is different from our previous query!
+
+Let's understand why.
+
+- Every CSE student can match, regardless of their city.
+- An IT student matches only if they live in Delhi.
+
+Therefore, Seth would also appear in the result because he is enrolled in CSE, even though he lives in Chandigarh.
+
+**Important operator precedence in MySQL:**
+
+1. `NOT`
+2. `AND`
+3. `OR`
 
 To avoid unexpected results, I should use parentheses whenever combining multiple logical operators.
 
-## 6. SQL Logical Operators vs MongoDB
+Parentheses make my intention clear and help prevent logical mistakes.
+
+## 6. How Logical Operators Handle NULL
+
+In L10, I learned that `NULL` represents missing or unknown data.
+
+Now I need to understand something important: SQL logical conditions don't always produce only TRUE or FALSE.
+
+They can also produce **UNKNOWN**.
+
+This is because MySQL uses three-valued logic when evaluating conditions involving NULL.
+
+### Why does UNKNOWN happen?
+
+Imagine our `student_contact_demo` table contains:
+
+| student_id | name | phone |
+|---:|---|---|
+| 1 | John | 9876543210 |
+| 2 | Roman | NULL |
+| 3 | Seth | 9123456780 |
+
+Suppose I execute:
+
+```sql
+SELECT *
+FROM student_contact_demo
+WHERE phone = '9876543210';
+```
+
+For Roman, MySQL cannot determine whether his phone number equals `'9876543210'` because his phone number is NULL.
+
+The result of that comparison is UNKNOWN, not TRUE or FALSE.
+
+### Understanding the three possible results
+
+| Result | Meaning |
+|---|---|
+| TRUE | The condition is satisfied |
+| FALSE | The condition is not satisfied |
+| UNKNOWN | MySQL cannot determine the result |
+
+Let's see how logical operators behave with UNKNOWN:
+
+**AND:**
+
+```text
+TRUE    AND UNKNOWN = UNKNOWN
+FALSE   AND UNKNOWN = FALSE
+UNKNOWN AND UNKNOWN = UNKNOWN
+```
+
+**OR:**
+
+```text
+TRUE    OR UNKNOWN = TRUE
+FALSE   OR UNKNOWN = UNKNOWN
+UNKNOWN OR UNKNOWN = UNKNOWN
+```
+
+**NOT:**
+
+```text
+NOT TRUE    = FALSE
+NOT FALSE   = TRUE
+NOT UNKNOWN = UNKNOWN
+```
+
+### What does this mean for WHERE?
+
+A `WHERE` clause returns only records for which the final condition evaluates to TRUE.
+
+Records evaluating to FALSE or UNKNOWN are not returned.
+
+For example:
+
+```sql
+SELECT *
+FROM student_contact_demo
+WHERE NOT (phone = '9876543210');
+```
+
+It might seem that this query should return everyone except John.
+
+But Roman's phone comparison produces UNKNOWN. Applying NOT to UNKNOWN still produces UNKNOWN.
+
+So Roman is not returned either.
+
+If I want to retrieve students whose phone numbers are missing, I must explicitly write:
+
+```sql
+SELECT *
+FROM student_contact_demo
+WHERE phone IS NULL;
+```
+
+This is why understanding NULL is important when combining logical conditions.
+
+## 7. SQL Logical Operators vs MongoDB
 
 Since I've already worked with MongoDB, I can connect these concepts to something I know.
 
@@ -355,8 +475,8 @@ AND city = 'Delhi';
 
 ```javascript
 db.students.find({
-  course: "CSE",
-  city: "Delhi"
+    course: "CSE",
+    city: "Delhi"
 });
 ```
 
@@ -366,10 +486,10 @@ I can also use the explicit `$and` operator:
 
 ```javascript
 db.students.find({
-  $and: [
-    { course: "CSE" },
-    { city: "Delhi" }
-  ]
+    $and: [
+        { course: "CSE" },
+        { city: "Delhi" }
+    ]
 });
 ```
 
@@ -388,10 +508,10 @@ OR course = 'IT';
 
 ```javascript
 db.students.find({
-  $or: [
-    { course: "CSE" },
-    { course: "IT" }
-  ]
+    $or: [
+        { course: "CSE" },
+        { course: "IT" }
+    ]
 });
 ```
 
@@ -409,21 +529,36 @@ WHERE NOT (course = 'CSE');
 
 ```javascript
 db.students.find({
-  course: { $ne: "CSE" }
+    course: { $ne: "CSE" }
 });
 ```
 
-Here, MongoDB uses `$ne` (not equal) to find documents whose course is not CSE. This is a similar filtering result, although it isn't a direct syntax equivalent of SQL's `NOT`.
+Here, MongoDB uses `$ne` (not equal) to find documents whose course is not CSE.
 
-The important difference is:
+This is a similar filtering result for our example, although `$ne` is not a direct syntax equivalent of SQL's `NOT`.
+
+MongoDB also has a `$not` operator, which negates the result of a query operator expression.
+
+For example:
+
+```javascript
+db.students.find({
+    age: { $not: { $gt: 20 } }
+});
+```
+
+This finds documents where the age is not greater than 20, including documents where the age field is missing.
+
+**The important difference:**
 
 - SQL works with tables and rows.
 - MongoDB works with collections and documents.
 - Both allow me to combine conditions to retrieve the data I need.
+- Their NULL, missing-field, and negation behaviours are not always identical.
 
-## 7. How Will I Use This in Backend Development?
+## 8. How Will I Use This in Backend Development?
 
-Imagine I'm building a student management API using Node.js, Express, and MySQL.
+Imagine I'm building a Student Management API using Node.js, Express, and MySQL.
 
 A user visits an endpoint to find students enrolled in CSE who live in Delhi.
 
@@ -445,6 +580,17 @@ This is how logical operators help build real-world filtering features such as:
 - Filtering products by category or availability.
 - Retrieving orders that match different conditions.
 
+For example, an e-commerce application might need to find products that belong to Electronics or Accessories and are currently in stock.
+
+```sql
+SELECT *
+FROM products
+WHERE (category = 'Electronics' OR category = 'Accessories')
+AND stock > 0;
+```
+
+Logical operators help me translate application requirements into database conditions.
+
 ## Quick Revision
 
 | Operator | What it does | Example |
@@ -458,7 +604,10 @@ Remember:
 - `AND` makes filtering more restrictive.
 - `OR` allows more records to match.
 - `NOT` reverses a condition.
+- SQL conditions can evaluate to TRUE, FALSE, or UNKNOWN.
+- `WHERE` returns only records for which the condition is TRUE.
 - `AND` has higher precedence than `OR`.
+- `NOT` has higher precedence than `AND`.
 - Parentheses help control the order in which conditions are evaluated.
 
 ## What Should I Be Able to Explain After This Lesson?
@@ -470,18 +619,23 @@ After completing this lesson, I should be able to explain:
 3. How does `NOT` reverse a condition?
 4. How can I combine multiple conditions in a single query?
 5. Why are parentheses important when combining `AND` and `OR`?
-6. How do SQL logical operators compare with MongoDB query operators?
+6. What is operator precedence in MySQL?
+7. Why can a condition involving NULL produce UNKNOWN?
+8. How do SQL logical operators compare with MongoDB query operators?
 
 ## What's Next?
 
 In the next lesson, I'll learn **L12 - Comparison Operators**.
 
-So far, I've mostly checked whether values are equal. But real applications need more flexible comparisons.
+So far, I've mostly checked whether values are equal or combined multiple conditions.
+
+But real applications need more flexible comparisons.
 
 For example:
 
 - Find students older than 20.
 - Find students whose age is less than 21.
 - Find records where a value is not equal to something.
+- Find products whose prices fall within a particular range.
 
-I'll learn operators such as `=`, `!=`, `<>`, `>`, `<`, `>=`, and `<=` in the next lesson.
+I'll learn operators such as `=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`, `BETWEEN`, and `NOT BETWEEN` in the next lesson.
