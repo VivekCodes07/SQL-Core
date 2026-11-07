@@ -180,7 +180,84 @@ WHERE price <= 499;
 
 
 -- ==========================================
--- 11. Combining Comparison and Logical Operators
+-- 11. BETWEEN and NOT BETWEEN
+-- ==========================================
+
+-- BETWEEN checks whether a value falls within
+-- a specified range.
+--
+-- Both boundary values are included.
+--
+-- For example, BETWEEN 500 AND 2000 means:
+-- price >= 500 AND price <= 2000.
+
+
+-- A. BETWEEN
+--
+-- Find products costing between 500 and 2000.
+-- Products priced exactly 500 or 2000 would also
+-- be included in the result.
+
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 2000;
+
+
+-- B. Understanding BETWEEN using separate conditions
+--
+-- The following query produces the same result
+-- as the BETWEEN query above.
+--
+-- I'm checking two conditions:
+-- 1. Price must be greater than or equal to 500.
+-- 2. Price must be less than or equal to 2000.
+--
+-- Both conditions must be true.
+
+SELECT *
+FROM products
+WHERE price >= 500
+AND price <= 2000;
+
+
+-- C. NOT BETWEEN
+--
+-- Find products whose prices are outside
+-- the range of 500 to 2000.
+--
+-- Both boundary values are excluded because
+-- NOT BETWEEN is the opposite of BETWEEN.
+
+SELECT *
+FROM products
+WHERE price NOT BETWEEN 500 AND 2000;
+
+
+-- D. BETWEEN with another column
+--
+-- Find products having stock between 8 and 15.
+-- Stock values of exactly 8 and 15 are included.
+
+SELECT *
+FROM products
+WHERE stock BETWEEN 8 AND 15;
+
+
+-- E. A practical category and price-range filter
+--
+-- Suppose a customer wants Electronics products
+-- within a budget of 1000 to 3000.
+--
+-- I'm combining BETWEEN with AND.
+
+SELECT *
+FROM products
+WHERE category = 'Electronics'
+AND price BETWEEN 1000 AND 3000;
+
+
+-- ==========================================
+-- 12. Combining Comparison and Logical Operators
 -- ==========================================
 
 -- Find products costing more than 1000
@@ -210,7 +287,7 @@ AND price > 1000;
 
 
 -- ==========================================
--- 12. Real-World Inventory Scenarios
+-- 13. Real-World Inventory Scenarios
 -- ==========================================
 
 -- Scenario 1:
@@ -232,8 +309,7 @@ WHERE price >= 2000;
 
 
 -- Scenario 3:
--- Find affordable products costing between
--- the store's chosen maximum of 500 (exclusive).
+-- Find affordable products costing less than 500.
 
 SELECT *
 FROM products
@@ -248,15 +324,35 @@ FROM products
 WHERE price != 799;
 
 
+-- Scenario 5:
+-- Find products within a customer's budget
+-- of 500 to 2000.
+--
+-- The minimum and maximum prices are included.
+
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 2000;
+
+
+-- Scenario 6:
+-- Find products that are outside the customer's
+-- selected budget range of 500 to 2000.
+
+SELECT *
+FROM products
+WHERE price NOT BETWEEN 500 AND 2000;
+
+
 -- ==========================================
--- 13. Final Verification
+-- 14. Final Verification
 -- ==========================================
 
 -- Check the database currently selected.
 
 SELECT DATABASE();
 
+
 -- View the complete product inventory again.
 
 SELECT * FROM products;
-

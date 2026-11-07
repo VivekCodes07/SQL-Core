@@ -13,6 +13,7 @@ Now, suppose I want to:
 - Find products whose stock is at least 10.
 - Find products that are not priced at ₹999.
 - Find products whose price is exactly ₹1,499.
+- Find products whose prices fall within a particular range.
 
 I can't solve all these requirements using only equality checks.
 
@@ -23,15 +24,18 @@ That's why I'm learning **Comparison Operators**.
 ## What Am I Going to Study?
 
 1. What are Comparison Operators?
-2. Equal To (`=`)
-3. Not Equal To (`!=` and `<>`)
-4. Greater Than (`>`)
-5. Less Than (`<`)
-6. Greater Than or Equal To (`>=`)
-7. Less Than or Equal To (`<=`)
-8. Combining Comparison Operators with WHERE
-9. SQL Comparison Operators vs MongoDB
-10. Real-world backend applications
+2. Understanding Our Example Table
+3. Equal To (`=`)
+4. Not Equal To (`!=` and `<>`)
+5. Greater Than (`>`)
+6. Less Than (`<`)
+7. Greater Than or Equal To (`>=`)
+8. Less Than or Equal To (`<=`)
+9. BETWEEN and NOT BETWEEN
+10. Understanding All Comparison Operators Together
+11. Combining Comparison Operators with WHERE
+12. SQL Comparison Operators vs MongoDB
+13. How Will I Use This in Backend Development?
 
 ## 1. What Are Comparison Operators?
 
@@ -107,6 +111,7 @@ WHERE category = 'Electronics';
 This retrieves products belonging to the Electronics category.
 
 Remember:
+
 - Use single quotes for text values.
 - Numeric values don't require quotation marks.
 
@@ -264,7 +269,150 @@ WHERE stock <= 8;
 
 The product with exactly 8 units is also included.
 
-## 9. Understanding All Comparison Operators Together
+## 9. BETWEEN and NOT BETWEEN
+
+### Why do I need them?
+
+Imagine a customer is browsing an e-commerce application and wants to find products within a particular budget.
+
+For example:
+
+- Show products costing between ₹500 and ₹2,000.
+- Find products with stock levels between 10 and 30.
+- Exclude products whose prices fall within a particular range.
+
+I could write these conditions using `>=`, `<=`, and logical operators.
+
+However, MySQL provides a more convenient way to check whether a value falls within a range.
+
+That's where `BETWEEN` and `NOT BETWEEN` come in.
+
+### A. BETWEEN
+
+The `BETWEEN` operator checks whether a value falls within a specified range.
+
+**Syntax:**
+
+```sql
+SELECT column_names
+FROM table_name
+WHERE column_name BETWEEN lower_value AND upper_value;
+```
+
+Let's understand it using our products table.
+
+Suppose I want to find products costing between ₹500 and ₹2,000.
+
+**SQL Example:**
+
+```sql
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 2000;
+```
+
+**Expected Output:**
+
+| product_name | price |
+|---|---:|
+| Keyboard | 799 |
+| Headphones | 1499 |
+
+**What is MySQL doing?**
+
+MySQL checks whether each product's price falls within the specified range.
+
+Here, it checks whether the price is:
+
+- Greater than or equal to 500.
+- Less than or equal to 2000.
+
+Both conditions must be satisfied.
+
+**Important: BETWEEN is inclusive.**
+
+This means the lower and upper boundary values are included in the result.
+
+For example:
+
+```sql
+WHERE price BETWEEN 500 AND 2000
+```
+
+is equivalent to:
+
+```sql
+WHERE price >= 500
+AND price <= 2000;
+```
+
+A product costing exactly ₹500 or ₹2,000 would also be included.
+
+### B. NOT BETWEEN
+
+Now suppose I want to find products whose prices are outside the range of ₹500 to ₹2,000.
+
+Instead of manually writing two conditions, I can use `NOT BETWEEN`.
+
+**SQL Example:**
+
+```sql
+SELECT *
+FROM products
+WHERE price NOT BETWEEN 500 AND 2000;
+```
+
+**Expected Output:**
+
+| product_name | price |
+|---|---:|
+| Mouse | 499 |
+| Monitor | 8999 |
+| USB Cable | 199 |
+| Webcam | 2499 |
+
+**What is MySQL doing?**
+
+It excludes products whose prices fall between 500 and 2000, including both boundary values.
+
+The remaining products are returned.
+
+### C. BETWEEN with Other Columns
+
+I can use `BETWEEN` with columns other than price.
+
+For example, suppose I want products whose stock is between 8 and 15 units.
+
+```sql
+SELECT *
+FROM products
+WHERE stock BETWEEN 8 AND 15;
+```
+
+**Expected Output:**
+
+| product_name | stock |
+|---|---:|
+| Keyboard | 15 |
+| Monitor | 8 |
+| Headphones | 12 |
+
+Notice that both 8 and 15 are included.
+
+### D. Understanding BETWEEN vs NOT BETWEEN
+
+| Operator | Meaning |
+|---|---|
+| `BETWEEN 500 AND 2000` | Includes values from 500 to 2000 |
+| `NOT BETWEEN 500 AND 2000` | Excludes values from 500 to 2000 |
+
+One important thing to remember:
+
+`BETWEEN` already includes both boundaries. I don't need to add separate equality checks for the lower and upper values.
+
+Also, if a column contains `NULL`, the range comparison does not evaluate to TRUE for that row, so it won't be returned by either condition in a normal `WHERE` filter.
+
+## 10. Understanding All Comparison Operators Together
 
 Let's quickly compare all the operators.
 
@@ -277,6 +425,8 @@ Let's quickly compare all the operators.
 | `<` | Less than | `price < 500` |
 | `>=` | Greater than or equal to | `stock >= 10` |
 | `<=` | Less than or equal to | `stock <= 8` |
+| `BETWEEN` | Within an inclusive range | `price BETWEEN 500 AND 2000` |
+| `NOT BETWEEN` | Outside an inclusive range | `price NOT BETWEEN 500 AND 2000` |
 
 ### Important Difference: `>` vs `>=`
 
@@ -296,7 +446,32 @@ The difference is whether the boundary value is included.
 - `>` and `<` exclude the boundary value.
 - `>=` and `<=` include the boundary value.
 
-## 10. Combining Comparison Operators with Logical Operators
+### Important Difference: BETWEEN vs Separate Conditions
+
+Suppose I want products priced between ₹500 and ₹2,000.
+
+I can write:
+
+```sql
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 2000;
+```
+
+Or I can write:
+
+```sql
+SELECT *
+FROM products
+WHERE price >= 500
+AND price <= 2000;
+```
+
+Both queries produce the same result.
+
+`BETWEEN` simply gives me a cleaner way to express an inclusive range condition.
+
+## 11. Combining Comparison Operators with Logical Operators
 
 I've already learned logical operators in L11.
 
@@ -328,7 +503,7 @@ OR stock > 20;
 
 This combines what I learned in L11 with the comparison operators from this lesson.
 
-## 11. SQL Comparison Operators vs MongoDB
+## 12. SQL Comparison Operators vs MongoDB
 
 Since I've already worked with MongoDB, I can connect these concepts to its query operators.
 
@@ -350,7 +525,7 @@ WHERE price > 1000;
 
 ```javascript
 db.products.find({
-  price: { $gt: 1000 }
+    price: { $gt: 1000 }
 });
 ```
 
@@ -368,7 +543,7 @@ WHERE price < 500;
 
 ```javascript
 db.products.find({
-  price: { $lt: 500 }
+    price: { $lt: 500 }
 });
 ```
 
@@ -386,7 +561,7 @@ WHERE stock >= 10;
 
 ```javascript
 db.products.find({
-  stock: { $gte: 10 }
+    stock: { $gte: 10 }
 });
 ```
 
@@ -404,7 +579,7 @@ WHERE stock <= 8;
 
 ```javascript
 db.products.find({
-  stock: { $lte: 8 }
+    stock: { $lte: 8 }
 });
 ```
 
@@ -422,7 +597,57 @@ WHERE price != 999;
 
 ```javascript
 db.products.find({
-  price: { $ne: 999 }
+    price: { $ne: 999 }
+});
+```
+
+### BETWEEN
+
+MongoDB doesn't have a direct `$between` operator.
+
+Instead, I can combine `$gte` and `$lte` to check an inclusive range.
+
+**SQL:**
+
+```sql
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 2000;
+```
+
+**MongoDB:**
+
+```javascript
+db.products.find({
+    price: {
+        $gte: 500,
+        $lte: 2000
+    }
+});
+```
+
+Both queries check whether the price is greater than or equal to 500 and less than or equal to 2000.
+
+### NOT BETWEEN
+
+I can use `$or` with `$lt` and `$gt` to find values outside an inclusive range.
+
+**SQL:**
+
+```sql
+SELECT *
+FROM products
+WHERE price NOT BETWEEN 500 AND 2000;
+```
+
+**MongoDB:**
+
+```javascript
+db.products.find({
+    $or: [
+        { price: { $lt: 500 } },
+        { price: { $gt: 2000 } }
+    ]
 });
 ```
 
@@ -430,7 +655,7 @@ The mental model is similar: both databases allow me to retrieve records by comp
 
 The syntax is different because SQL uses comparison operators directly, while MongoDB uses query operators such as `$gt` and `$ne`.
 
-## 12. How Will I Use This in Backend Development?
+## 13. How Will I Use This in Backend Development?
 
 Imagine I'm building an e-commerce backend using Node.js, Express, and MySQL.
 
@@ -449,6 +674,7 @@ Similarly, I can build features such as:
 - Display products within a price requirement.
 - Find products with low inventory.
 - Identify expensive products.
+- Find products within a customer's budget.
 - Find orders above a particular amount.
 - Retrieve users based on their age.
 
@@ -462,6 +688,16 @@ WHERE stock <= 8;
 
 This helps the application identify products that may need restocking.
 
+I could also use `BETWEEN` when a customer applies a price-range filter:
+
+```sql
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 2000;
+```
+
+This is the kind of query that could run when a user selects a minimum and maximum price on an e-commerce website.
+
 The important idea is that comparison operators turn ordinary database queries into useful business logic.
 
 ## Quick Revision
@@ -471,8 +707,12 @@ The important idea is that comparison operators turn ordinary database queries i
 - `!=` and `<>` check inequality.
 - `>` and `<` perform strict comparisons.
 - `>=` and `<=` include the boundary value.
+- `BETWEEN` checks whether a value falls within an inclusive range.
+- `NOT BETWEEN` checks whether a value falls outside an inclusive range.
+- `BETWEEN` is equivalent to combining `>=` and `<=` using `AND`.
 - Comparison operators are commonly used with `WHERE`.
 - They can also be combined with logical operators such as `AND` and `OR`.
+- MongoDB uses operators such as `$gt`, `$lt`, `$gte`, `$lte`, and `$ne` for similar comparisons.
 
 ## What Should I Be Able to Explain After This Lesson?
 
@@ -483,8 +723,11 @@ After completing this lesson, I should be able to explain:
 3. Why does MySQL support both `!=` and `<>`?
 4. What is the difference between `>` and `>=`?
 5. What is the difference between `<` and `<=`?
-6. How can I combine comparison operators with logical operators?
-7. How do SQL comparison operators compare with MongoDB operators?
+6. What is the purpose of `BETWEEN` and `NOT BETWEEN`?
+7. Why is `BETWEEN` called an inclusive range operator?
+8. How is `BETWEEN` different from combining `>=` and `<=`?
+9. How can I combine comparison operators with logical operators?
+10. How do SQL comparison operators compare with MongoDB operators?
 
 ## What's Next?
 
