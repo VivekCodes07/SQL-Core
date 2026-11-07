@@ -20,7 +20,7 @@ I need a way to tell the database:
 
 This is where the `WHERE` clause comes in.
 
-The `WHERE` clause allows me to filter records based on a specified condition. Instead of retrieving every row, I can retrieve only the rows that match my requirement.
+The `WHERE` clause allows me to filter records based on specified conditions. Instead of retrieving every row, I can retrieve only the rows that match my requirement.
 
 Since I've already studied MongoDB, I can relate this to filtering documents using `find()`.
 
@@ -40,7 +40,11 @@ WHERE student_id = 105;
 
 Both queries retrieve matching records, but they use different query syntax.
 
-In this lesson, I'll understand how SQL filtering works and how I can use it in real backend applications.
+However, filtering isn't limited to checking whether two values are equal.
+
+What if I want to search for names starting with a particular letter, find records with missing values, or match a column against several possible values?
+
+That's why I'll explore some additional filtering techniques in this lesson.
 
 ## What Am I Going to Study?
 
@@ -51,9 +55,12 @@ I'll learn these concepts in the following order:
 3. Filtering Records Using WHERE
 4. Filtering Text Values
 5. Filtering Numeric Values
-6. Understanding How WHERE Works
-7. SQL WHERE vs MongoDB find()
-8. Practical Examples Using the Students Table
+6. Filtering NULL Values (`IS NULL`, `IS NOT NULL`)
+7. Pattern Matching Using `LIKE` and `NOT LIKE`
+8. Filtering Multiple Values Using `IN` and `NOT IN`
+9. Understanding How WHERE Works
+10. SQL WHERE vs MongoDB find()
+11. Practical Examples Using the Students Table
 
 ## 1. What Is the WHERE Clause?
 
@@ -330,7 +337,400 @@ Both databases compare the stored numeric value with the number I'm providing.
 
 The important thing is to understand the data type of the column or field I'm filtering.
 
-## 6. Understanding How WHERE Works
+## 6. Filtering NULL Values
+
+### Why Do I Need to Check for NULL?
+
+Imagine a student registers on the college portal but hasn't provided their phone number yet.
+
+The student record already exists, but the phone number hasn't been entered.
+
+How should the database represent this situation?
+
+This is where `NULL` becomes important.
+
+In SQL, `NULL` represents a missing or unknown value.
+
+For example, imagine my `students` table has an additional `phone` column:
+
+| student_id | name | phone |
+|---|---|---|
+| 101 | John | 9876543210 |
+| 102 | Roman | NULL |
+| 103 | Seth | 9123456780 |
+| 104 | Randy | NULL |
+
+Roman and Randy haven't provided their phone numbers.
+
+I might initially think that I can find them using:
+
+```sql
+SELECT *
+FROM students
+WHERE phone = NULL;
+```
+
+But this is incorrect!
+
+### Why Can't I Use `= NULL`?
+
+`NULL` is not an ordinary value.
+
+It represents something unknown or missing. Therefore, comparing a value with `NULL` using `=` or `!=` doesn't work as a normal comparison.
+
+Instead, SQL provides two special conditions:
+
+- `IS NULL`
+- `IS NOT NULL`
+
+### IS NULL
+
+`IS NULL` retrieves records where a particular column contains a NULL value.
+
+For example:
+
+```sql
+SELECT *
+FROM students
+WHERE phone IS NULL;
+```
+
+**Expected Result:**
+
+| student_id | name | phone |
+|---|---|---|
+| 102 | Roman | NULL |
+| 104 | Randy | NULL |
+
+This helps me find students who haven't provided their phone numbers.
+
+### IS NOT NULL
+
+Sometimes I want to find records where a value is already available.
+
+That's where `IS NOT NULL` comes in.
+
+```sql
+SELECT *
+FROM students
+WHERE phone IS NOT NULL;
+```
+
+**Expected Result:**
+
+| student_id | name | phone |
+|---|---|---|
+| 101 | John | 9876543210 |
+| 103 | Seth | 9123456780 |
+
+This returns students whose phone number is present.
+
+### NULL vs Empty String
+
+This is an important distinction.
+
+`NULL` and an empty string (`''`) are not the same thing.
+
+| Value | Meaning |
+|---|---|
+| `NULL` | No value is available or known |
+| `''` | A value exists, but it contains zero characters |
+| `' '` | A string containing a space |
+| `'9876543210'` | An actual text value |
+
+For example, if I store an empty string in the phone column, `IS NULL` won't identify that record.
+
+This distinction is important when validating user input in backend applications.
+
+### What About MongoDB?
+
+In MongoDB, I can check for null-like values using:
+
+```javascript
+db.students.find({ phone: null });
+```
+
+However, MongoDB's behavior is slightly different: this query can match documents where `phone` is explicitly `null` or where the field is missing entirely.
+
+To find documents where the field exists and is explicitly null:
+
+```javascript
+db.students.find({
+  phone: { $exists: true, $eq: null }
+});
+```
+
+The important difference is that SQL tables have defined columns, whereas MongoDB documents can have fields that are missing entirely.
+
+## 7. Pattern Matching Using LIKE
+
+### Why Do I Need LIKE?
+
+Suppose a student searches for another student, but they only remember that the student's name starts with the letter `R`.
+
+They don't remember the complete name.
+
+If I use equality:
+
+```sql
+SELECT *
+FROM students
+WHERE name = 'R';
+```
+
+This searches for a name that is exactly `R`.
+
+But I want to find names that start with `R`, such as Roman or Randy.
+
+That's where the `LIKE` operator comes in.
+
+### What Is LIKE?
+
+`LIKE` is used to search for text values that match a particular pattern.
+
+Unlike `=`, which checks for an exact match, `LIKE` allows me to search using wildcard characters.
+
+MySQL provides two commonly used wildcard characters:
+
+| Wildcard | Meaning |
+|---|---|
+| `%` | Matches zero or more characters |
+| `_` | Matches exactly one character |
+
+Let's understand them with examples.
+
+### Example 1: Names Starting With R
+
+```sql
+SELECT *
+FROM students
+WHERE name LIKE 'R%';
+```
+
+Here:
+
+- `R` means the name must start with R.
+- `%` means any number of characters can follow it.
+
+**Expected Result:**
+
+| student_id | name |
+|---|---|
+| 102 | Roman |
+| 104 | Randy |
+
+### Example 2: Names Ending With N
+
+```sql
+SELECT *
+FROM students
+WHERE name LIKE '%n';
+```
+
+Here, `%` allows any characters before the letter `n`.
+
+**Expected Result:**
+
+| student_id | name |
+|---|---|
+| 101 | John |
+
+### Example 3: Names Containing A
+
+```sql
+SELECT *
+FROM students
+WHERE name LIKE '%a%';
+```
+
+Here, the letter `a` can appear anywhere in the name.
+
+**Expected Result:**
+
+| student_id | name |
+|---|---|
+| 104 | Randy |
+
+### Example 4: Using the Underscore (`_`) Wildcard
+
+Suppose I want to find names where the second character is `o`.
+
+```sql
+SELECT *
+FROM students
+WHERE name LIKE '_o%';
+```
+
+Let's understand the pattern:
+
+- First `_` represents exactly one character.
+- `o` means the second character must be `o`.
+- `%` allows any number of characters after it.
+
+**Expected Result:**
+
+| student_id | name |
+|---|---|
+| 101 | John |
+| 102 | Roman |
+
+### NOT LIKE
+
+Sometimes I want to exclude names matching a particular pattern.
+
+That's where `NOT LIKE` helps.
+
+For example, find names that don't start with `R`:
+
+```sql
+SELECT *
+FROM students
+WHERE name NOT LIKE 'R%';
+```
+
+This returns John, Seth, and Brock.
+
+### What About MongoDB?
+
+MongoDB supports pattern matching through regular expressions.
+
+For example, to find names starting with R:
+
+```javascript
+db.students.find({
+  name: /^R/
+});
+```
+
+The idea is similar, but MongoDB uses regular expressions while SQL uses the `LIKE` operator and its wildcard characters.
+
+**Important:** MySQL's `LIKE` matching can be case-insensitive depending on the column's collation. The exact behavior depends on the column configuration.
+
+## 8. Filtering Multiple Values Using IN
+
+### Why Do I Need IN?
+
+Imagine the college administration wants to retrieve students enrolled in either CSE, IT, or ECE.
+
+I could write:
+
+```sql
+SELECT *
+FROM students
+WHERE course = 'CSE'
+OR course = 'IT'
+OR course = 'ECE';
+```
+
+This works, but imagine checking against 10 or 20 different courses.
+
+The query would become unnecessarily long.
+
+MySQL provides the `IN` operator to make this easier.
+
+### What Is IN?
+
+`IN` checks whether a value matches any value inside a specified list.
+
+Instead of writing multiple equality conditions connected by `OR`, I can provide a list of acceptable values.
+
+### SQL Example
+
+```sql
+SELECT *
+FROM students
+WHERE course IN ('CSE', 'IT', 'ECE');
+```
+
+**Expected Result:**
+
+| student_id | name | course |
+|---|---|---|
+| 101 | John | CSE |
+| 102 | Roman | IT |
+| 103 | Seth | CSE |
+| 104 | Randy | ECE |
+
+This query returns students whose course matches at least one value in the list.
+
+### Understanding IN vs OR
+
+Both queries perform the same filtering operation:
+
+**Using OR:**
+
+```sql
+SELECT *
+FROM students
+WHERE course = 'CSE'
+OR course = 'IT'
+OR course = 'ECE';
+```
+
+**Using IN:**
+
+```sql
+SELECT *
+FROM students
+WHERE course IN ('CSE', 'IT', 'ECE');
+```
+
+The second query is shorter and easier to maintain when checking multiple possible values.
+
+### NOT IN
+
+What if I want to find students who are not enrolled in CSE or IT?
+
+I can use `NOT IN`.
+
+```sql
+SELECT *
+FROM students
+WHERE course NOT IN ('CSE', 'IT');
+```
+
+**Expected Result:**
+
+| student_id | name | course |
+|---|---|---|
+| 104 | Randy | ECE |
+| 105 | Brock | Mechanical |
+
+This returns records whose course doesn't match any value in the specified list.
+
+One important thing: avoid including `NULL` inside a `NOT IN` list unless you specifically understand SQL's NULL behavior. It can cause the condition to produce unexpected results.
+
+### What About MongoDB?
+
+MongoDB provides `$in` and `$nin` operators for similar filtering.
+
+**SQL:**
+
+```sql
+SELECT *
+FROM students
+WHERE course IN ('CSE', 'IT');
+```
+
+**MongoDB:**
+
+```javascript
+db.students.find({
+  course: { $in: ["CSE", "IT"] }
+});
+```
+
+Similarly, MongoDB's `$nin` can be used to exclude matching values.
+
+```javascript
+db.students.find({
+  course: { $nin: ["CSE", "IT"] }
+});
+```
+
+The concept is similar, but the syntax is different.
+
+## 9. Understanding How WHERE Works
 
 Let's understand what happens when MySQL executes a query containing a WHERE condition.
 
@@ -360,13 +760,13 @@ I can visualize it like this:
           +--------+--------+
           |                 |
        Matches           Doesn't
-          |              match
+          |               match
           v                 |
      John - CSE             |
      Seth - CSE             |
           |                 |
           v                 |
-       SELECT name, course
+      SELECT name, course
           |
           v
        Final Result
@@ -378,7 +778,7 @@ It only controls which records are included in the query result.
 
 Also, this is a conceptual explanation of the query. MySQL's actual query optimizer may choose a different execution strategy depending on indexes and other factors.
 
-## 7. SQL WHERE vs MongoDB find()
+## 10. SQL WHERE vs MongoDB find()
 
 Since I've already studied MongoDB, comparing both approaches will help me understand SQL filtering more easily.
 
@@ -389,6 +789,9 @@ Let's look at some equivalent queries.
 | Find all CSE students | `WHERE course = 'CSE'` | `{ course: "CSE" }` |
 | Find student with ID 105 | `WHERE student_id = 105` | `{ student_id: 105 }` |
 | Find students aged 20 | `WHERE age = 20` | `{ age: 20 }` |
+| Find missing phone values | `phone IS NULL` | `{ phone: null }` |
+| Find names starting with R | `name LIKE 'R%'` | `{ name: /^R/ }` |
+| Match multiple courses | `course IN ('CSE', 'IT')` | `{ course: { $in: ["CSE", "IT"] } }` |
 
 For example, suppose I want to retrieve all CSE students.
 
@@ -414,17 +817,15 @@ In MongoDB, I pass a filter document to methods like `find()`.
 
 The underlying idea is similar: retrieve only the records that match my requirement.
 
-I'll explore more advanced filtering conditions in the upcoming lessons.
-
-## 8. Practical Understanding: School Management System
+## 11. Practical Understanding: School Management System
 
 Now let's connect everything to the database I'm building throughout this course.
 
-Imagine my School Management System has a `students` table.
+Imagine my School Management System has a `students` table with additional columns such as `phone` and `email`.
 
 The college administration might have different requirements:
 
-**Situation 1: Find all students enrolled in CSE.**
+### Situation 1: Find all students enrolled in CSE.
 
 ```sql
 SELECT *
@@ -432,7 +833,7 @@ FROM students
 WHERE course = 'CSE';
 ```
 
-**Situation 2: Find the student whose ID is 104.**
+### Situation 2: Find the student whose ID is 104.
 
 ```sql
 SELECT *
@@ -440,7 +841,7 @@ FROM students
 WHERE student_id = 104;
 ```
 
-**Situation 3: Display the names of students who are 20 years old.**
+### Situation 3: Display the names of students who are 20 years old.
 
 ```sql
 SELECT name
@@ -448,20 +849,36 @@ FROM students
 WHERE age = 20;
 ```
 
-**Situation 4: Find all students enrolled in Mechanical.**
+### Situation 4: Find students who haven't provided their phone number.
 
 ```sql
 SELECT *
 FROM students
-WHERE course = 'Mechanical';
+WHERE phone IS NULL;
 ```
 
-**Situation 5: Find a student named Roman.**
+### Situation 5: Find students whose names start with R.
 
 ```sql
 SELECT *
 FROM students
-WHERE name = 'Roman';
+WHERE name LIKE 'R%';
+```
+
+### Situation 6: Find students enrolled in CSE, IT, or ECE.
+
+```sql
+SELECT *
+FROM students
+WHERE course IN ('CSE', 'IT', 'ECE');
+```
+
+### Situation 7: Find students who are not enrolled in CSE or IT.
+
+```sql
+SELECT *
+FROM students
+WHERE course NOT IN ('CSE', 'IT');
 ```
 
 Each query retrieves only the records that match the specified condition.
@@ -473,10 +890,14 @@ This is how I can retrieve meaningful information from a database instead of bli
 | Concept | Meaning |
 |---|---|
 | `WHERE` | Filters records based on a condition |
-| Condition | A requirement that a record must satisfy |
-| `WHERE course = 'CSE'` | Retrieves records where the course is CSE |
-| `WHERE age = 20` | Retrieves records where the age is 20 |
-| `WHERE student_id = 105` | Retrieves the record with student ID 105 |
+| `IS NULL` | Finds records containing NULL values |
+| `IS NOT NULL` | Finds records that have a value |
+| `LIKE` | Searches text using a pattern |
+| `NOT LIKE` | Excludes text matching a pattern |
+| `%` | Matches zero or more characters |
+| `_` | Matches exactly one character |
+| `IN` | Matches any value in a specified list |
+| `NOT IN` | Excludes values in a specified list |
 | Text values | Generally written inside single quotes |
 | Numeric values | Written without quotation marks |
 | MongoDB `find()` | Retrieves documents matching a filter |
@@ -488,9 +909,13 @@ This is how I can retrieve meaningful information from a database instead of bli
 3. `WHERE` determines which rows are included in the result.
 4. Text values are generally enclosed in single quotes.
 5. Numeric values don't require quotation marks.
-6. Filtering data doesn't modify the original table.
-7. If no records match the condition, MySQL returns an empty result set.
-8. MongoDB's `find()` and SQL's `WHERE` provide similar filtering capabilities, but their syntax is different.
+6. `NULL` is different from an empty string or zero.
+7. Use `IS NULL` and `IS NOT NULL` to check for missing values.
+8. Use `LIKE` with `%` and `_` to search text patterns.
+9. Use `IN` instead of writing multiple equality conditions connected by `OR`.
+10. Filtering data doesn't modify the original table.
+11. If no records match the condition, MySQL returns an empty result set.
+12. MongoDB's `find()` and SQL's `WHERE` provide similar filtering capabilities, but their syntax is different.
 
 ## What Should I Be Able to Explain After This Lesson?
 
@@ -499,17 +924,22 @@ Before moving ahead, I should be able to explain:
 - What is the purpose of the `WHERE` clause?
 - Why do I need filtering in SQL?
 - What is the basic syntax of WHERE?
-- How can I retrieve records matching a particular text value?
-- How can I filter records using numeric values?
+- How can I retrieve records matching a particular text or numeric value?
 - Why do text values use quotation marks?
 - What is the difference between `SELECT` and `WHERE`?
+- What is `NULL`, and why can't I use `= NULL`?
+- What is the difference between `IS NULL` and `IS NOT NULL`?
+- How does `LIKE` work?
+- What is the difference between `%` and `_`?
+- What is the difference between `LIKE` and `NOT LIKE`?
+- How does `IN` simplify multiple equality conditions?
+- What is the difference between `IN` and `NOT IN`?
 - How does SQL filtering compare with MongoDB's `find()`?
 - Does filtering modify the original table?
-- What happens when no records match the condition?
 
 ## What's Next?
 
-So far, I've learned how to filter records using a single condition.
+So far, I've learned how to filter records using different conditions.
 
 But what if I want to retrieve students who are enrolled in CSE **and** are 20 years old?
 

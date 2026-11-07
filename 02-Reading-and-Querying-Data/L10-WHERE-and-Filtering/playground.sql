@@ -103,7 +103,148 @@ WHERE name = 'Roman';
 
 
 -- ==========================================
--- 7. Practice: Real-World Scenarios
+-- 7. Handling NULL Values
+-- ==========================================
+
+-- NULL represents missing or unknown data.
+-- It is different from an empty string ('') or zero (0).
+
+-- Our existing students table doesn't have a phone column.
+-- So, let's create a separate table to practise NULL values
+-- without changing our original students table.
+
+CREATE TABLE IF NOT EXISTS student_contact_demo (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    phone VARCHAR(20)
+);
+
+INSERT IGNORE INTO student_contact_demo
+    (student_id, name, phone)
+VALUES
+    (1, 'John', '9876543210'),
+    (2, 'Roman', NULL),
+    (3, 'Seth', '9123456780'),
+    (4, 'Randy', NULL),
+    (5, 'Brock', '9988776655');
+
+
+-- IS NULL finds records where the phone number is missing.
+
+SELECT *
+FROM student_contact_demo
+WHERE phone IS NULL;
+
+
+-- IS NOT NULL finds records where a phone number exists.
+
+SELECT *
+FROM student_contact_demo
+WHERE phone IS NOT NULL;
+
+
+-- Important:
+-- We cannot use phone = NULL to check for missing values.
+-- SQL uses IS NULL and IS NOT NULL for this purpose.
+
+
+-- ==========================================
+-- 8. Pattern Matching Using LIKE
+-- ==========================================
+
+-- Sometimes we don't know the complete value we are
+-- searching for. For example, we may only know that
+-- a student's name starts with the letter 'R'.
+
+-- LIKE helps us search for values using patterns.
+
+-- Two important wildcards are:
+--
+-- % represents zero or more characters.
+-- _ represents exactly one character.
+
+
+-- Find students whose names start with 'R'.
+
+SELECT *
+FROM students
+WHERE name LIKE 'R%';
+
+
+-- Find students whose names end with 'n'.
+
+SELECT *
+FROM students
+WHERE name LIKE '%n';
+
+
+-- Find students whose names contain 'an'.
+
+SELECT *
+FROM students
+WHERE name LIKE '%an%';
+
+
+-- Find students whose names have exactly four characters.
+-- Each underscore represents one character.
+
+SELECT *
+FROM students
+WHERE name LIKE '____';
+
+
+-- NOT LIKE returns records that do not match the pattern.
+
+SELECT *
+FROM students
+WHERE name NOT LIKE 'R%';
+
+
+-- Note:
+-- Whether LIKE is case-sensitive depends on the
+-- collation used by the column or database.
+
+
+-- ==========================================
+-- 9. Filtering Multiple Values Using IN
+-- ==========================================
+
+-- Imagine we want students enrolled in either CSE or IT.
+-- We could write multiple conditions using OR.
+
+SELECT *
+FROM students
+WHERE course = 'CSE' OR course = 'IT';
+
+
+-- But when we need to check multiple possible values,
+-- IN makes the condition shorter and easier to read.
+
+SELECT *
+FROM students
+WHERE course IN ('CSE', 'IT');
+
+
+-- IN checks whether a column matches any value
+-- from the list provided inside the parentheses.
+
+
+-- NOT IN does the opposite.
+-- It returns records whose course is not in the given list.
+
+SELECT *
+FROM students
+WHERE course NOT IN ('CSE', 'IT');
+
+
+-- Important:
+-- Avoid placing NULL inside a NOT IN list.
+-- NULL can make the condition evaluate to UNKNOWN,
+-- which may prevent the expected records from appearing.
+
+
+-- ==========================================
+-- 10. Practice: Real-World Scenarios
 -- ==========================================
 
 -- Scenario 1:
@@ -136,3 +277,35 @@ WHERE age = 20;
 SELECT *
 FROM students
 WHERE student_id = 3;
+
+
+-- Scenario 5:
+-- Find students whose names start with 'S'.
+
+SELECT *
+FROM students
+WHERE name LIKE 'S%';
+
+
+-- Scenario 6:
+-- Find students enrolled in CSE or ECE.
+
+SELECT *
+FROM students
+WHERE course IN ('CSE', 'ECE');
+
+
+-- Scenario 7:
+-- Find students whose phone numbers are missing.
+
+SELECT *
+FROM student_contact_demo
+WHERE phone IS NULL;
+
+
+-- Scenario 8:
+-- Find students whose names do not start with 'R'.
+
+SELECT *
+FROM students
+WHERE name NOT LIKE 'R%';
